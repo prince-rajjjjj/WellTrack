@@ -1,0 +1,93 @@
+<div class="container py-4" style="max-width: 800px;">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Notifications</h3>
+      <p class="text-muted mb-0">
+        {{ service.unreadCount() }} unread of {{ service.notifications().length }} total
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="refresh()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+      @if (service.unreadCount() > 0) {
+        <button class="btn btn-success" (click)="markAllRead()">
+          <i class="bi bi-check2-all me-1"></i>Mark all read
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs mb-3">
+    @for (f of filters; track f) {
+      <button class="filter-btn"
+              [class.active]="activeFilter() === f"
+              (click)="activeFilter.set(f)">
+        {{ f === 'all' ? 'All' : (f === 'unread' ? 'Unread' : (f === 'read' ? 'Read' : f)) }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success"></div>
+      <p class="text-muted mt-2 mb-0">Loading notifications...</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-bell-slash fs-1 d-block mb-2 opacity-50"></i>
+      <p class="mb-0">
+        @if (activeFilter() === 'unread') {
+          You're all caught up
+        } @else if (activeFilter() === 'read') {
+          No read notifications yet
+        } @else {
+          No notifications
+        }
+      </p>
+    </div>
+  } @else {
+    @for (group of filtered(); track group.label) {
+      <div class="mb-4">
+        <h6 class="text-muted text-uppercase small fw-bold mb-2 px-1">
+          {{ group.label }}
+        </h6>
+
+        <div class="card border-0 shadow-sm">
+          <div class="list-group list-group-flush">
+            @for (n of group.items; track n.id) {
+              <div class="list-group-item notif-row d-flex gap-3 py-3"
+                   [class.unread]="n.status === 'Active'"
+                   (click)="markRead(n)">
+
+                <div class="notif-icon" [ngClass]="service.categoryColor(n.category)">
+                  <i class="bi" [ngClass]="service.categoryIcon(n.category)"></i>
+                </div>
+
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <span class="badge bg-light text-dark me-2 small">{{ n.category }}</span>
+                      <span [class.fw-semibold]="n.status === 'Active'">{{ n.message }}</span>
+                    </div>
+                    <small class="text-muted text-nowrap">
+                      {{ service.timeAgo(n.createdAt) }}
+                    </small>
+                  </div>
+                </div>
+
+                <button class="btn btn-link text-danger p-0"
+                        (click)="delete(n.id, $event)" title="Delete">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

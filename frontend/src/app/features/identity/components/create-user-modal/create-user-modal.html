@@ -1,0 +1,258 @@
+<div class="modal-backdrop-custom" (click)="onBackdropClick($event)">
+  <div class="modal-dialog-custom">
+
+    <div class="card border-0 shadow-lg" style="border-radius: 16px;">
+      <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h5 class="fw-bold mb-1">Create New User</h5>
+            <p class="text-muted small mb-0">Add a user to the platform</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cancel()"></button>
+        </div>
+
+        @if (error()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-exclamation-circle-fill"></i>{{ error() }}
+          </div>
+        }
+
+        <form [formGroup]="form" novalidate>
+
+          <!-- Full Name -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Full Name</label>
+            <input type="text"
+                   class="form-control form-control-lg"
+                   [class.is-invalid]="name.invalid && name.touched"
+                   formControlName="name"
+                   placeholder="John Smith" />
+            @if (name.touched && name.hasError('required')) {
+              <div class="invalid-feedback">Name is required.</div>
+            }
+            @if (name.touched && name.hasError('minlength')) {
+              <div class="invalid-feedback">Name must be at least 2 characters.</div>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email"
+                   class="form-control form-control-lg"
+                   [class.is-invalid]="email.invalid && email.touched"
+                   formControlName="email"
+                   placeholder="user@company.com" />
+            @if (email.touched && email.hasError('required')) {
+              <div class="invalid-feedback">Email is required.</div>
+            }
+            @if (email.touched && email.hasError('email')) {
+              <div class="invalid-feedback">Invalid email format.</div>
+            }
+          </div>
+
+          <div class="row g-3 mb-3">
+            <!-- Phone with +91 prefix -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phone</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light fw-semibold">+91</span>
+                <input type="tel"
+                       class="form-control form-control-lg"
+                       [class.is-invalid]="phone.invalid && phone.touched"
+                       formControlName="phone"
+                       placeholder="9876543210"
+                       maxlength="10"
+                       inputmode="numeric" />
+              </div>
+              @if (phone.touched && phone.hasError('required')) {
+                <div class="text-danger small mt-1">Phone is required.</div>
+              }
+              @if (phone.touched && phone.hasError('pattern')) {
+                <div class="text-danger small mt-1">
+                  Phone must be exactly 10 digits, numbers only.
+                </div>
+              }
+            </div>
+
+            <!-- Role -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Role</label>
+              <select class="form-select form-select-lg" formControlName="role">
+                @for (r of roles; track r.value) {
+                  <option [value]="r.value">{{ r.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-2">
+            <label class="form-label fw-semibold">Password</label>
+            <div class="input-group">
+              <input [type]="showPassword ? 'text' : 'password'"
+                     class="form-control form-control-lg border-end-0"
+                     [class.is-invalid]="password.invalid && password.touched"
+                     formControlName="password"
+                     placeholder="Strong password required" />
+              <button type="button"
+                      class="btn btn-outline-secondary border-start-0"
+                      (click)="showPassword = !showPassword"
+                      tabindex="-1">
+                <i class="bi"
+                   [class.bi-eye]="!showPassword"
+                   [class.bi-eye-slash]="showPassword"></i>
+              </button>
+              @if (password.touched && password.hasError('required')) {
+                <div class="invalid-feedback">Password is required.</div>
+              }
+            </div>
+
+            <!-- Password strength meter (live) -->
+            @if (passwordStrength() > 0) {
+              <div class="mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">Password strength</small>
+                  <small class="fw-semibold text-{{ strengthLabel().color }}">
+                    {{ strengthLabel().label }}
+                  </small>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-{{ strengthLabel().color }}"
+                       [style.width.%]="(passwordStrength() / 5) * 100"></div>
+                </div>
+              </div>
+            }
+
+            <!-- Password requirements checklist -->
+            <ul class="password-checklist mt-3 mb-0">
+              <li [class.met]="hasMinLength()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasMinLength()"
+                   [class.bi-circle]="!hasMinLength()"></i>
+                At least 8 characters
+              </li>
+              <li [class.met]="hasLowercase()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasLowercase()"
+                   [class.bi-circle]="!hasLowercase()"></i>
+                One lowercase letter (a–z)
+              </li>
+              <li [class.met]="hasUppercase()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasUppercase()"
+                   [class.bi-circle]="!hasUppercase()"></i>
+                One uppercase letter (A–Z)
+              </li>
+              <li [class.met]="hasNumber()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasNumber()"
+                   [class.bi-circle]="!hasNumber()"></i>
+                One number (0–9)
+              </li>
+              <li [class.met]="hasSpecial()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasSpecial()"
+                   [class.bi-circle]="!hasSpecial()"></i>
+                One special character (!&#64;#$%^&*)
+              </li>
+            </ul>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button type="button"
+                    class="btn btn-outline-secondary px-4"
+                    (click)="cancel()">
+              Cancel
+            </button>
+            <button type="button"
+                    class="btn btn-success px-4 fw-semibold"
+                    (click)="submit()"
+                    [disabled]="loading()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Creating...
+              } @else {
+                <i class="bi bi-check-circle me-2"></i>Create User
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  animation: fadeIn 0.2s;
+}
+
+.modal-dialog-custom {
+  width: 100%;
+  max-width: 540px;
+  margin: 1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.input-group-text {
+  border-radius: 10px 0 0 10px;
+  border: 1.5px solid #e5e7eb;
+  border-right: none;
+  color: #374151;
+}
+
+.input-group .form-control {
+  border-radius: 0 10px 10px 0 !important;
+}
+
+.password-checklist {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.password-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.password-checklist li i {
+  font-size: 1rem;
+  color: #d1d5db;
+  transition: color 0.2s;
+}
+
+.password-checklist li.met {
+  color: #16a34a;
+}
+
+.password-checklist li.met i {
+  color: #16a34a;
+}
+</style>

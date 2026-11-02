@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/WellTrack.SharedKernel/WellTrack.SharedKernel.csproj" />
+    <Project Path="WellTrack.Gateway/WellTrack.Gateway.csproj" />
+    <Project Path="WellTrack.Services.Compliance/WellTrack.Services.Compliance.csproj" />
+    <Project Path="WellTrack.Services.Engagement/WellTrack.Services.Engagement.csproj" />
+    <Project Path="WellTrack.Services.Identity/WellTrack.Services.Identity.csproj" Id="2b881652-ee57-4412-a560-f133455f7787" />
+    <Project Path="WellTrack.Services.Notification/WellTrack.Services.Notification.csproj" />
+    <Project Path="WellTrack.Services.Participation/WellTrack.Services.Participation.csproj" />
+    <Project Path="WellTrack.Services.Reporting/WellTrack.Services.Reporting.csproj" />
+    <Project Path="WellTrack.Services.Wellness/WellTrack.Services.Wellness.csproj" />
+  </Folder>
+  <Folder Name="/src/script/">
+    <File Path="CreateLocalDatabases.sql" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WellTrack.Compliance.Tests/WellTrack.Compliance.Tests.csproj" />
+    <Project Path="tests/WellTrack.Engagement.Tests/WellTrack.Engagement.Tests.csproj" />
+    <Project Path="tests/WellTrack.Identity.Tests/WellTrack.Identity.Tests.csproj" />
+    <Project Path="tests/WellTrack.Integration.Tests/WellTrack.Integration.Tests.csproj" />
+    <Project Path="tests/WellTrack.Notification.Tests/WellTrack.Notification.Tests.csproj" />
+    <Project Path="tests/WellTrack.Participation.Tests/WellTrack.Participation.Tests.csproj" />
+    <Project Path="tests/WellTrack.Reporting.Tests/WellTrack.Reporting.Tests.csproj" />
+    <Project Path="tests/WellTrack.Wellness.Tests/WellTrack.Wellness.Tests.csproj" />
+  </Folder>
+</Solution>

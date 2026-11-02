@@ -1,0 +1,99 @@
+:host { display: block; }
+
+// ── Employee overall banner ───────────────────────────────────────────────
+.overall-score-banner {
+  border-radius: 0.875rem !important;
+}
+
+// ── Employee programme cards ──────────────────────────────────────────────
+.engagement-card {
+  border-radius: 0.875rem !important;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px);
+  }
+}
+
+.score-badge {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  .score-denom {
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 0.6;
+  }
+}
+
+.tips-panel {
+  background: rgba(245, 158, 11, 0.06);
+  border-left: 3px solid #F59E0B;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.tip-item { padding: 0.125rem 0; }
+
+// ── Shared avatar circle ──────────────────────────────────────────────────
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+// ── At-risk spotlight ─────────────────────────────────────────────────────
+.at-risk-row {
+  &:last-child { border-bottom: none !important; }
+  &:hover { background: rgba(220, 53, 69, 0.04); }
+}
+
+// ── Leaderboard rows ──────────────────────────────────────────────────────
+.leaderboard-row {
+  &:last-child { border-bottom: none !important; }
+  &:hover { background: rgba(0, 0, 0, 0.02); }
+}
+
+.rank-badge {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #374151;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.gold   { background: #FEF08A; color: #92400E; }
+  &.silver { background: #E2E8F0; color: #334155; }
+  &.bronze { background: #FDE8C8; color: #78350F; }
+}
+
+// ── KPI stat cards ────────────────────────────────────────────────────────
+.stat-card { border-radius: 0.75rem !important; }
+
+// ── Factor health bars ────────────────────────────────────────────────────
+.factor-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #F3F4F6;
+  .progress-bar { border-radius: 4px; transition: width 0.4s ease; }
+}
+
+// ── Programme health stacked bar ──────────────────────────────────────────
+.health-bar-stack {
+  min-width: 120px;
+  & > div { transition: width 0.4s ease; }
+  & > div:not(:last-child) { border-right: 1px solid #fff; }
+}

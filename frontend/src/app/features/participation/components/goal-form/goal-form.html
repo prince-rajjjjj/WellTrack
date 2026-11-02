@@ -1,0 +1,123 @@
+<div class="container-fluid py-4 px-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+
+      <!-- Header -->
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <button class="btn btn-light btn-sm rounded-3" (click)="onCancel()">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <div>
+          <h4 class="fw-bold mb-0">New Goal</h4>
+          <p class="text-muted small mb-0">Set a new wellness goal</p>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Goal Description <span class="text-danger">*</span>
+            </label>
+            <textarea
+              formControlName="description"
+              class="form-control rounded-3"
+              rows="3"
+              placeholder="e.g. Run 50 sessions this month"
+              [class.is-invalid]="isInvalid('description')">
+            </textarea>
+            @if (f['description'].hasError('required') && f['description'].touched) {
+              <div class="invalid-feedback">Description is required.</div>
+            }
+            @if (f['description'].hasError('minlength')) {
+              <div class="invalid-feedback">Must be at least 5 characters.</div>
+            }
+            <div class="form-text text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              Cannot be changed after the goal is created.
+            </div>
+          </div>
+
+          <!-- Target Value -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Target Value <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="targetValue"
+              class="form-control rounded-3"
+              placeholder="e.g. 50 (sessions), 5000 (steps)"
+              [class.is-invalid]="isInvalid('targetValue')">
+            @if (f['targetValue'].hasError('required') && f['targetValue'].touched) {
+              <div class="invalid-feedback">Target value is required.</div>
+            }
+            @if (f['targetValue'].hasError('min')) {
+              <div class="invalid-feedback">Target value must be at least 1.</div>
+            }
+          </div>
+
+          <!-- Dates Row -->
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <label class="form-label fw-semibold">
+                Start Date <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                formControlName="startDate"
+                class="form-control rounded-3"
+                [min]="todayStr"
+                [class.is-invalid]="isInvalid('startDate')">
+              @if (f['startDate'].hasError('required') && f['startDate'].touched) {
+                <div class="invalid-feedback">Start date is required.</div>
+              }
+              @if (f['startDate'].hasError('pastDate') && f['startDate'].touched) {
+                <div class="invalid-feedback">Start date cannot be in the past.</div>
+              }
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">
+                End Date <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                formControlName="endDate"
+                class="form-control rounded-3"
+                [min]="minEndDateStr"
+                [class.is-invalid]="isInvalid('endDate') || (form.hasError('endBeforeStart') && f['endDate'].touched)">
+              @if (f['endDate'].hasError('required') && f['endDate'].touched) {
+                <div class="invalid-feedback">End date is required.</div>
+              }
+              @if (form.hasError('endBeforeStart') && f['endDate'].touched) {
+                <div class="invalid-feedback">End date must be after start date.</div>
+              }
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-3">
+            <button type="submit"
+                    class="btn btn-primary flex-grow-1 rounded-3"
+                    [disabled]="goalService.loading()">
+              @if (goalService.loading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              Create Goal
+            </button>
+            <button type="button"
+                    class="btn btn-outline-secondary rounded-3 px-4"
+                    (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

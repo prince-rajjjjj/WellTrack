@@ -1,0 +1,106 @@
+@if (show) {
+  <div class="popup-overlay" (click)="$event.target === $event.currentTarget && skip()">
+    <div class="popup-card" role="dialog" aria-modal="true">
+
+      <!-- ── SUCCESS STATE ────────────────────────────────────────── -->
+      @if (done()) {
+        <div class="text-center py-2">
+          <span class="done-emoji">✅</span>
+          <h5 class="fw-bold mt-3 mb-1 text-success">Thanks for your feedback!</h5>
+          <p class="text-muted small mb-0">
+            Your rating has been saved and helps us improve future sessions.
+          </p>
+        </div>
+
+      } @else {
+        <!-- ── RATING FORM ─────────────────────────────────────────── -->
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+          <span class="hero-emoji">🏆</span>
+          <h5 class="fw-bold mb-1">
+            @if (activityTitle) {
+              You completed "{{ activityTitle }}"!
+            } @else {
+              Activity completed!
+            }
+          </h5>
+          @if (programName) {
+            <span class="badge bg-primary-subtle text-primary px-3 py-1 mt-1 d-inline-block">
+              <i class="bi bi-folder2 me-1"></i>{{ programName }}
+            </span>
+          }
+          <p class="text-muted small mt-2 mb-0">
+            How would you rate this session? Your feedback makes programmes better.
+          </p>
+        </div>
+
+        <!-- Star row -->
+        <div class="star-row mb-1" (mouseleave)="unhover()">
+          @for (s of stars; track s) {
+            <span
+              class="star"
+              [class.active]="isActive(s)"
+              (mouseenter)="hover(s)"
+              (click)="activate(s)"
+              role="button"
+              [attr.aria-label]="s + ' star' + (s > 1 ? 's' : '')">&#9733;</span>
+          }
+        </div>
+        <!-- Rating label under stars -->
+        <div class="text-center mb-3" style="min-height:1.25rem;">
+          @if (rating() > 0) {
+            <small class="fw-semibold text-amber">{{ ratingLabel() }}</small>
+          } @else {
+            <small class="text-muted">Tap a star to rate</small>
+          }
+        </div>
+
+        <!-- Comments textarea -->
+        <div class="mb-3">
+          <textarea
+            class="form-control form-control-sm"
+            rows="3"
+            [ngModel]="comments()"
+            (ngModelChange)="comments.set($event)"
+            placeholder="Any comments? (optional)">
+          </textarea>
+        </div>
+
+        <!-- Error -->
+        @if (errorMsg()) {
+          <div class="alert alert-danger py-2 px-3 small mb-3 rounded-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg() }}
+          </div>
+        }
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2">
+          <button
+            class="btn btn-primary rounded-3 flex-grow-1 fw-semibold"
+            (click)="submit()"
+            [disabled]="saving()">
+            @if (saving()) {
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+              Submitting…
+            } @else {
+              <i class="bi bi-send-fill me-1"></i>Submit Feedback
+            }
+          </button>
+          <button
+            class="btn btn-outline-secondary rounded-3"
+            (click)="skip()"
+            [disabled]="saving()">
+            Skip
+          </button>
+        </div>
+
+        <!-- Skip hint -->
+        <p class="text-muted text-center mt-2 mb-0" style="font-size:0.72rem;">
+          Press Esc or click outside to skip
+        </p>
+      }
+
+    </div>
+  </div>
+}

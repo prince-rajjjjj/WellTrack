@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.progress-wrapper {
+  width: 100%;
+}
+
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+  border-radius: 99px;
+}

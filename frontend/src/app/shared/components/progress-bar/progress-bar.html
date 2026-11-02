@@ -1,0 +1,17 @@
+<div class="progress-wrapper">
+  <div class="progress" [style.height.px]="height" style="border-radius: 99px;">
+    <div class="progress-bar bg-{{ autoColor }}"
+         role="progressbar"
+         [style.width.%]="clampedValue"
+         [attr.aria-valuenow]="clampedValue"
+         aria-valuemin="0"
+         aria-valuemax="100">
+    </div>
+  </div>
+  @if (showText) {
+    <div class="d-flex justify-content-between align-items-center mt-1">
+      <span class="text-muted" style="font-size: 0.75rem;">{{ displayLabel }}</span>
+      <span class="fw-semibold text-{{ autoColor }}" style="font-size: 0.75rem;">{{ clampedValue }}%</span>
+    </div>
+  }
+</div>

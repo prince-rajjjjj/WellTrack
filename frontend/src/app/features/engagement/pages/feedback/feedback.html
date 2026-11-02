@@ -1,0 +1,481 @@
+<div class="content-area">
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  SHARED header                                            -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div>
+      <h4 class="fw-bold mb-0">
+        <i class="bi bi-chat-square-heart-fill text-primary me-2"></i>
+        @if (isHR)    { All Feedback }
+        @else if (isCoach) { Session Feedback }
+        @else          { My Feedback }
+      </h4>
+      <p class="text-muted small mb-0 mt-1">
+        @if (isHR)    { Organisation-wide feedback across all programmes }
+        @else if (isCoach) { Feedback submitted for sessions you coach }
+        @else          { Feedback you've submitted for wellness programmes }
+      </p>
+    </div>
+
+    <!-- Employee: New Feedback button -->
+    @if (isEmp && !showNewForm()) {
+      <button
+        class="btn btn-primary btn-sm rounded-3 px-3"
+        (click)="openNewForm()"
+        [disabled]="availableActivities().length === 0">
+        <i class="bi bi-plus-lg me-1"></i>
+        {{ availableActivities().length === 0 ? 'All Activities Reviewed' : 'Share Feedback' }}
+      </button>
+    }
+  </div>
+
+  <!-- ── Loading ────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2 small">Loading feedback…</p>
+    </div>
+  }
+
+  <!-- ── Error ──────────────────────────────────────────────────── -->
+  @if (error() && !loading()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  EMPLOYEE VIEW                                            -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (!loading() && isEmp) {
+
+    <!-- ── New Feedback panel (inline, slides in) ─────────────── -->
+    @if (showNewForm()) {
+      <div class="card border-0 shadow-sm mb-4 new-feedback-panel">
+        <div class="card-header bg-primary-subtle border-bottom py-3 d-flex align-items-center justify-content-between">
+          <span class="fw-semibold text-primary">
+            <i class="bi bi-star-fill me-2"></i>Share Feedback
+          </span>
+          <button class="btn-close btn-close-sm" (click)="closeNewForm()"></button>
+        </div>
+        <div class="card-body">
+
+          <!-- Activity selector -->
+          @if (availableActivities().length > 1) {
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold">Activity</label>
+              <select
+                class="form-select form-select-sm"
+                [ngModel]="newActivityId()"
+                (ngModelChange)="newActivityId.set($event)">
+                @for (a of availableActivities(); track a.id) {
+                  <option [value]="a.id">{{ a.title }} — {{ a.programName }}</option>
+                }
+              </select>
+            </div>
+          } @else if (availableActivities().length === 1) {
+            <div class="mb-3 d-flex align-items-center gap-2">
+              <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                <i class="bi bi-play-circle me-1"></i>{{ availableActivities()[0].title }}
+              </span>
+              <span class="badge bg-secondary-subtle text-secondary px-2 py-2">
+                <i class="bi bi-folder2 me-1"></i>{{ availableActivities()[0].programName }}
+              </span>
+            </div>
+          }
+
+          @if (newActivityId() && selectedActivity) {
+            <app-feedback-form
+              [programId]="selectedActivity.programID"
+              [activityId]="selectedActivity.id"
+              [activityTitle]="selectedActivity.title"
+              (submitted)="onNewSubmitted()"
+              (cancelled)="closeNewForm()">
+            </app-feedback-form>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Empty state ────────────────────────────────────────── -->
+    @if (myFeedbacks().length === 0 && !showNewForm()) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-chat-square display-3 d-block mb-3 opacity-25"></i>
+        <p class="mb-1 fw-medium">No feedback submitted yet</p>
+        <p class="small">Complete an activity and share your experience with your coach.</p>
+        @if (availableActivities().length > 0) {
+          <button class="btn btn-primary btn-sm mt-2 rounded-3" (click)="openNewForm()">
+            <i class="bi bi-plus-lg me-1"></i>Share Feedback
+          </button>
+        }
+      </div>
+    }
+
+    <!-- ── Feedback cards (read-only) ──────────────────────────── -->
+    @if (myFeedbacks().length > 0) {
+      <div class="row row-cols-1 row-cols-lg-2 g-4">
+        @for (fb of pagedMyFeedbacks(); track fb.id) {
+          <div class="col">
+            <div class="card border-0 shadow-sm feedback-card h-100">
+
+              <div class="card-header bg-transparent border-bottom py-3">
+                @if (fb.activityTitle) {
+                  <p class="fw-semibold mb-0 small">{{ fb.activityTitle }}</p>
+                  <p class="text-muted mb-0" style="font-size:0.7rem;">
+                    <i class="bi bi-folder2 me-1"></i>{{ programName(fb.programID) }}
+                  </p>
+                } @else {
+                  <p class="fw-semibold mb-0 small">{{ programName(fb.programID) }}</p>
+                  <p class="text-muted mb-0" style="font-size:0.7rem;">Programme</p>
+                }
+              </div>
+
+              <div class="card-body">
+                <!-- Star display -->
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="star-display">
+                    @for (s of stars; track s) {
+                      <span class="star" [class.filled]="starFilled(fb.rating, s)">&#9733;</span>
+                    }
+                  </div>
+                  <span class="small fw-semibold" [ngClass]="ratingColorClass(fb.rating)">
+                    {{ ratingLabel(fb.rating) }}
+                  </span>
+                </div>
+                <!-- Comments -->
+                @if (fb.comments) {
+                  <p class="text-dark small mb-0 comment-text">{{ fb.comments }}</p>
+                } @else {
+                  <p class="text-muted small fst-italic mb-0">No comments provided.</p>
+                }
+              </div>
+
+              <div class="card-footer bg-transparent border-top text-muted small">
+                <i class="bi bi-calendar3 me-1"></i>Submitted {{ formatDate(fb.date) }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Employee feedback pagination -->
+      @if (empFbPages() > 1) {
+        <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="empFbPage() === 1" (click)="empFbGoToPage(empFbPage() - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          @for (p of empFbPageNumbers(); track p) {
+            <button class="btn btn-sm rounded-3"
+                    [class]="p === empFbPage() ? 'btn-primary' : 'btn-outline-secondary'"
+                    (click)="empFbGoToPage(p)">{{ p }}</button>
+          }
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="empFbPage() === empFbPages()" (click)="empFbGoToPage(empFbPage() + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <span class="text-muted small ms-2">{{ empFbPage() }} / {{ empFbPages() }}</span>
+        </div>
+      }
+    }
+  }
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  COACH VIEW                                               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (!loading() && isCoach) {
+
+    <!-- Programme filter -->
+    @if (knownPrograms().length > 1) {
+      <div class="d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-funnel text-muted"></i>
+        <select
+          class="form-select form-select-sm w-auto"
+          [ngModel]="selectedProgram()"
+          (ngModelChange)="setSelectedProgram($event)">
+          <option value="">All Programmes</option>
+          @for (pid of knownPrograms(); track pid) {
+            <option [value]="pid">{{ programName(pid) }}</option>
+          }
+        </select>
+        @if (selectedProgram()) {
+          <button class="btn btn-link btn-sm text-muted p-0" (click)="setSelectedProgram('')">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        }
+      </div>
+    }
+
+    <!-- No feedback yet -->
+    @if (programGroups().length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox display-3 d-block mb-3 opacity-25"></i>
+        <p class="mb-0 fw-medium">No feedback received yet</p>
+        <p class="small">Feedback will appear here once employees submit ratings for your sessions.</p>
+      </div>
+    }
+
+    <!-- One card per programme -->
+    @for (grp of pagedGroups(); track grp.programId) {
+      <div class="card border-0 shadow-sm mb-4 program-group-card">
+
+        <!-- Programme header with average star -->
+        <div class="card-header bg-transparent border-bottom py-3">
+          <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <div>
+              <span class="fw-semibold">{{ grp.name }}</span>
+              <span class="badge bg-secondary-subtle text-secondary ms-2">{{ grp.count }} review{{ grp.count !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+              @for (s of range(5); track s) {
+                <span class="mini-star" [class.filled]="s <= grp.avgRounded">&#9733;</span>
+              }
+              <span class="small fw-semibold ms-1" [ngClass]="ratingColorClass(grp.avgRounded)">
+                {{ grp.avgRating }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback rows table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 feedback-table">
+            <thead class="table-light">
+              <tr>
+                <th class="small text-muted fw-semibold ps-3">Employee</th>
+                <th class="small text-muted fw-semibold text-center">Rating</th>
+                <th class="small text-muted fw-semibold">Activity / Comments</th>
+                <th class="small text-muted fw-semibold text-end pe-3">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fb of grp.feedbacks; track fb.id) {
+                <tr>
+                  <!-- Employee avatar + ID -->
+                  <td class="ps-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="avatar-sm">{{ employeeInitial(fb.employeeID) }}</span>
+                      <span class="small text-muted">{{ employeeName(fb.employeeID) }}</span>
+                    </div>
+                  </td>
+                  <!-- Stars -->
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1 mb-1">
+                      @for (s of stars; track s) {
+                        <span class="star-sm" [class.filled]="starFilled(fb.rating, s)">&#9733;</span>
+                      }
+                    </div>
+                    <small class="fw-semibold" [ngClass]="ratingColorClass(fb.rating)">
+                      {{ ratingLabel(fb.rating) }}
+                    </small>
+                  </td>
+                  <!-- Comments -->
+                  <td class="small text-muted">
+                    @if (fb.activityTitle) {
+                      <span class="d-block fw-medium text-dark">{{ fb.activityTitle }}</span>
+                    }
+                    <span class="text-muted">{{ fb.comments || '—' }}</span>
+                  </td>
+                  <!-- Date -->
+                  <td class="text-end pe-3 small text-muted text-nowrap">
+                    {{ formatDate(fb.date) }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- Coach group pagination -->
+    @if (grpPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-2 mb-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="grpPage() === 1" (click)="grpGoToPage(grpPage() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of grpPageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === grpPage() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="grpGoToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="grpPage() === grpPages()" (click)="grpGoToPage(grpPage() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ grpPage() }} / {{ grpPages() }}</span>
+      </div>
+    }
+  }
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  HR / ADMIN VIEW                                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (!loading() && isHR) {
+
+    <!-- Stats strip -->
+    @if (orgStats(); as s) {
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm stat-card">
+            <div class="card-body">
+              <p class="text-muted small mb-1">Total Reviews</p>
+              <h3 class="fw-bold mb-0">{{ s.total }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm stat-card">
+            <div class="card-body">
+              <p class="text-muted small mb-1">Programmes Reviewed</p>
+              <h3 class="fw-bold mb-0">{{ s.programCount }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm stat-card">
+            <div class="card-body">
+              <p class="text-muted small mb-1">5-Star Reviews</p>
+              <h3 class="fw-bold mb-0 text-success">
+                {{ s.fiveStarCount }}
+                <span class="fs-6 text-muted fw-normal">({{ s.fiveStarPct }}%)</span>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm stat-card">
+            <div class="card-body">
+              <p class="text-muted small mb-1">Org Avg Rating</p>
+              <h3 class="fw-bold mb-0 text-primary">
+                {{ s.avgRating }}
+                <span class="fs-6 fw-normal text-muted">/5</span>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Programme filter -->
+    @if (knownPrograms().length > 1) {
+      <div class="d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-funnel text-muted"></i>
+        <select
+          class="form-select form-select-sm w-auto"
+          [ngModel]="selectedProgram()"
+          (ngModelChange)="setSelectedProgram($event)">
+          <option value="">All Programmes</option>
+          @for (pid of knownPrograms(); track pid) {
+            <option [value]="pid">{{ programName(pid) }}</option>
+          }
+        </select>
+        @if (selectedProgram()) {
+          <button class="btn btn-link btn-sm text-muted p-0" (click)="setSelectedProgram('')">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        }
+      </div>
+    }
+
+    <!-- No feedback -->
+    @if (programGroups().length === 0 && !loading()) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox display-3 d-block mb-3 opacity-25"></i>
+        <p class="mb-0 fw-medium">No feedback records found</p>
+      </div>
+    }
+
+    <!-- One card per programme -->
+    @for (grp of pagedGroups(); track grp.programId) {
+      <div class="card border-0 shadow-sm mb-4 program-group-card">
+
+        <div class="card-header bg-transparent border-bottom py-3">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+              <span class="fw-semibold">{{ grp.name }}</span>
+              <span class="badge bg-secondary-subtle text-secondary ms-2">{{ grp.count }} review{{ grp.count !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+              @for (s of range(5); track s) {
+                <span class="mini-star" [class.filled]="s <= grp.avgRounded">&#9733;</span>
+              }
+              <span class="small fw-semibold ms-1" [ngClass]="ratingColorClass(grp.avgRounded)">
+                {{ grp.avgRating }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 feedback-table">
+            <thead class="table-light">
+              <tr>
+                <th class="small text-muted fw-semibold ps-3">Employee</th>
+                <th class="small text-muted fw-semibold text-center">Rating</th>
+                <th class="small text-muted fw-semibold">Activity / Comments</th>
+                <th class="small text-muted fw-semibold text-end pe-3">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fb of grp.feedbacks; track fb.id) {
+                <tr>
+                  <td class="ps-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="avatar-sm">{{ employeeInitial(fb.employeeID) }}</span>
+                      <div>
+                        <div class="small fw-medium">{{ employeeName(fb.employeeID) }}</div>
+                        <div class="text-muted" style="font-size:0.68rem;">{{ fb.employeeID.slice(0,8).toUpperCase() }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1 mb-1">
+                      @for (s of stars; track s) {
+                        <span class="star-sm" [class.filled]="starFilled(fb.rating, s)">&#9733;</span>
+                      }
+                    </div>
+                    <small class="fw-semibold" [ngClass]="ratingColorClass(fb.rating)">{{ ratingLabel(fb.rating) }}</small>
+                  </td>
+                  <td class="small text-muted">
+                    @if (fb.activityTitle) {
+                      <span class="d-block fw-medium text-dark">{{ fb.activityTitle }}</span>
+                    }
+                    <span class="text-muted">{{ fb.comments || '—' }}</span>
+                  </td>
+                  <td class="text-end pe-3 small text-muted text-nowrap">{{ formatDate(fb.date) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- HR group pagination -->
+    @if (grpPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-2 mb-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="grpPage() === 1" (click)="grpGoToPage(grpPage() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of grpPageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === grpPage() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="grpGoToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="grpPage() === grpPages()" (click)="grpGoToPage(grpPage() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ grpPage() }} / {{ grpPages() }}</span>
+      </div>
+    }
+  }
+
+</div>

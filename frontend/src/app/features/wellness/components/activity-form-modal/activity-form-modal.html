@@ -1,0 +1,313 @@
+<div class="modal-backdrop-custom" (click)="onBackdropClick($event)">
+  <div class="modal-dialog-custom">
+    <div class="card border-0 shadow-lg" style="border-radius:16px;">
+      <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h5 class="fw-bold mb-1">
+              {{ mode === 'create' ? 'Create Activity'
+                 : mode === 'edit' ? 'Edit Activity'
+                 : 'Assign Coach' }}
+            </h5>
+            <p class="text-muted small mb-0">
+              {{ mode === 'create' ? 'Schedule a new activity inside a program'
+                 : mode === 'edit' ? 'Update the activity details'
+                 : 'Assign a coach to: ' + activity?.title }}
+            </p>
+          </div>
+          <button type="button" class="btn-close" (click)="cancel()"></button>
+        </div>
+
+        @if (error()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-exclamation-circle-fill"></i>{{ error() }}
+          </div>
+        }
+
+        <!-- ───── CREATE / EDIT FORM ───── -->
+        @if (mode === 'create' || mode === 'edit') {
+          <form [formGroup]="createForm" (ngSubmit)="submit()" novalidate>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Program</label>
+              <select class="form-select form-select-lg"
+                      [class.is-invalid]="createForm.controls.programID.invalid && createForm.controls.programID.touched"
+                      formControlName="programID">
+                <option value="">Select a program...</option>
+                @for (p of programService.programs(); track p.id) {
+                  <option [value]="p.id">{{ p.title }}</option>
+                }
+              </select>
+              @if (createForm.controls.programID.touched && createForm.controls.programID.hasError('required')) {
+                <div class="invalid-feedback">Program is required.</div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Title</label>
+              <input type="text" class="form-control form-control-lg"
+                     [class.is-invalid]="createForm.controls.title.invalid && createForm.controls.title.touched"
+                     formControlName="title" placeholder="e.g. Morning Yoga Session" />
+              @if (createForm.controls.title.touched && createForm.controls.title.hasError('required')) {
+                <div class="invalid-feedback">Title is required.</div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" rows="2"
+                        [class.is-invalid]="createForm.controls.description.invalid && createForm.controls.description.touched"
+                        formControlName="description" placeholder="What this activity is about..."></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Type</label>
+              <select class="form-select"
+                      [class.is-invalid]="createForm.controls.type.invalid && createForm.controls.type.touched"
+                      formControlName="type"
+                      (change)="onTypeChange()">
+                <option value="">Select type...</option>
+                @for (t of activityTypes; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+              @if (createForm.controls.type.value === 'Other') {
+                <input type="text"
+                       class="form-control mt-2"
+                       formControlName="customType"
+                       placeholder="Describe the activity type (e.g. Stress Management)"
+                       maxlength="60" />
+                <div class="form-text">Tell us what this activity is — this becomes the displayed type.</div>
+              }
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-md-7">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-calendar-event text-primary me-1"></i>Date &amp; Time
+                </label>
+                <app-date-picker
+                  mode="datetime"
+                  placeholder="Select date & time"
+                  [min]="dateMin()"
+                  [max]="dateMax()"
+                  [invalid]="createForm.controls.date.invalid && createForm.controls.date.touched"
+                  formControlName="date">
+                </app-date-picker>
+                @if (createForm.controls.date.touched && createForm.controls.date.hasError('required')) {
+                  <div class="text-danger small mt-1">Date is required.</div>
+                } @else if (createForm.controls.date.touched && createForm.controls.date.hasError('pastDate')) {
+                  <div class="text-danger small mt-1">Date &amp; time cannot be in the past.</div>
+                }
+                @if (selectedProgram(); as p) {
+                  <div class="form-text mt-1">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Activity must fall within
+                    <strong>{{ p.startDate | date:'MMM d, y' }}</strong>
+                    &ndash;
+                    <strong>{{ p.endDate | date:'MMM d, y' }}</strong>.
+                  </div>
+                }
+              </div>
+              <div class="col-md-5">
+                @if (isChallenge()) {
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-calendar-range text-warning me-1"></i>Number of Days
+                  </label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" formControlName="days" min="1" />
+                    <span class="input-group-text">days</span>
+                  </div>
+                  <div class="form-text">Total length of the challenge in days.</div>
+                } @else {
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-clock text-warning me-1"></i>Duration (min)
+                  </label>
+                  <input type="number" class="form-control" formControlName="duration" min="1" />
+                }
+              </div>
+            </div>
+            <div class="mb-2"></div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Max Participants</label>
+              <input type="number" class="form-control" formControlName="maxParticipants" min="1" />
+            </div>
+
+            <!-- Mode picker -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Mode</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" id="mode-off" formControlName="mode" value="Offline" (change)="onModeChange()" />
+                <label class="btn btn-outline-success" for="mode-off"><i class="bi bi-geo-alt me-1"></i>Offline</label>
+
+                <input type="radio" class="btn-check" id="mode-on" formControlName="mode" value="Online" (change)="onModeChange()" />
+                <label class="btn btn-outline-success" for="mode-on"><i class="bi bi-play-btn me-1"></i>Online (YouTube)</label>
+              </div>
+            </div>
+
+            @if (createForm.controls.mode.value === 'Offline') {
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Location</label>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm"
+                            formControlName="locCity"
+                            (change)="onLocCityChange()">
+                      <option value="">City…</option>
+                      @for (c of cities; track c) {
+                        <option [value]="c">{{ c }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm"
+                            formControlName="locBuilding"
+                            (change)="recomputeLocation()"
+                            [disabled]="!createForm.controls.locCity.value">
+                      <option value="">Building…</option>
+                      @for (b of buildingsForSelectedCity(); track b) {
+                        <option [value]="b">{{ b }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm"
+                            formControlName="locFloor"
+                            (change)="recomputeLocation()"
+                            [disabled]="!createForm.controls.locBuilding.value">
+                      <option value="">Floor…</option>
+                      @for (f of floors; track f) {
+                        <option [value]="f">{{ f }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm"
+                            formControlName="locRoom"
+                            (change)="recomputeLocation()"
+                            [disabled]="!createForm.controls.locFloor.value">
+                      <option value="">Room…</option>
+                      @for (r of rooms; track r) {
+                        <option [value]="r">{{ r }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+                @if (createForm.controls.location.value) {
+                  <div class="form-text mt-2">
+                    <i class="bi bi-pin-map me-1"></i>
+                    <strong>{{ createForm.controls.location.value }}</strong>
+                  </div>
+                } @else {
+                  <div class="form-text mt-2">Pick city → building → floor → room.</div>
+                }
+              </div>
+            }
+            @if (createForm.controls.mode.value === 'Online') {
+              <div class="mb-3">
+                <label class="form-label fw-semibold">YouTube URL</label>
+                <input type="url"
+                       class="form-control"
+                       [class.is-invalid]="createForm.controls.videoUrl.invalid && createForm.controls.videoUrl.touched"
+                       formControlName="videoUrl"
+                       placeholder="https://www.youtube.com/watch?v=..." />
+                @if (createForm.controls.videoUrl.touched && createForm.controls.videoUrl.hasError('youtubeUrl')) {
+                  <div class="text-danger small mt-1">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Please paste a valid link.
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Optional coach assignment -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Assign Coach <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              @if (loadingCoaches()) {
+                <div class="d-flex align-items-center gap-2 text-muted small py-2">
+                  <span class="spinner-border spinner-border-sm"></span> Loading coaches...
+                </div>
+              } @else {
+                <select class="form-select" (change)="onCreateCoachSelected($any($event.target).value)">
+                  <option value="">No coach assigned</option>
+                  @for (c of coaches(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+              }
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
+              <button type="submit" class="btn btn-success px-4 fw-semibold" [disabled]="loading()">
+                @if (loading()) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>{{ mode === 'edit' ? 'Saving...' : 'Creating...' }}
+                } @else {
+                  <i class="bi bi-check-circle me-2"></i>{{ mode === 'edit' ? 'Save Changes' : 'Create Activity' }}
+                }
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- ───── ASSIGN COACH FORM ───── -->
+        @if (mode === 'assign-coach') {
+          <form [formGroup]="assignForm" (ngSubmit)="submit()" novalidate>
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Select Coach</label>
+              @if (loadingCoaches()) {
+                <div class="d-flex align-items-center gap-2 text-muted py-2">
+                  <span class="spinner-border spinner-border-sm"></span> Loading coaches...
+                </div>
+              } @else {
+                <select class="form-select form-select-lg"
+                        [class.is-invalid]="assignForm.controls.coachID.invalid && assignForm.controls.coachID.touched"
+                        (change)="onAssignCoachSelected($any($event.target).value)">
+                  <option value="">Choose an active coach...</option>
+                  @for (c of coaches(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+                @if (assignForm.controls.coachID.touched && assignForm.controls.coachID.hasError('required')) {
+                  <div class="invalid-feedback">Please select a coach.</div>
+                }
+              }
+            </div>
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
+              <button type="submit" class="btn btn-primary px-4 fw-semibold" [disabled]="loading()">
+                @if (loading()) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>Assigning...
+                } @else {
+                  <i class="bi bi-person-check me-2"></i>Assign Coach
+                }
+              </button>
+            </div>
+          </form>
+        }
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-backdrop-custom {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5); display:flex;
+  align-items:center; justify-content:center;
+  z-index:1050; animation:fadeIn 0.2s;
+}
+.modal-dialog-custom { width:100%; max-width:640px; margin:1rem; animation:slideUp 0.2s; max-height: 95vh; overflow-y: auto; }
+.date-group .form-control { border-left: 0; }
+.date-group .form-control:focus { box-shadow: none; border-color: #ced4da; }
+.date-group:focus-within { box-shadow: 0 0 0 .25rem rgba(13,110,253,.15); border-radius: .5rem; }
+.date-group:focus-within .input-group-text,
+.date-group:focus-within .form-control { border-color: #86b7fe; }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+</style>

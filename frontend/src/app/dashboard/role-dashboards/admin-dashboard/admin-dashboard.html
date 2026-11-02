@@ -1,0 +1,98 @@
+<div class="d-flex flex-column gap-4">
+
+  <!-- Hero -->
+  <div class="wt-hero d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h1 class="wt-hero-title">Admin Console</h1>
+      <p class="wt-hero-subtitle mb-2">Oversight summary across the organization.</p>
+      <span class="wt-hero-pill">Admin</span>
+    </div>
+    <div class="text-end">
+      <div class="wt-hero-date">{{ today | date:'EEEE' }}</div>
+      <div class="fw-semibold">{{ today | date:'MMMM d, y' }}</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <section>
+    <div class="wt-section-label">Key Metrics</div>
+    @if (complianceSvc.recordsLoading() && complianceSvc.records().length === 0) {
+      <wt-skeleton variant="stat-card" [count]="4"></wt-skeleton>
+    } @else {
+      <div class="row g-3">
+        @for (s of stats(); track s.label) {
+          <div class="col-6 col-md-3">
+            <a [routerLink]="s.route" class="wt-stat-card">
+              <div class="d-flex align-items-center gap-3">
+                <div class="wt-stat-icon" [ngClass]="'bg-' + s.tone + '-subtle text-' + s.tone">
+                  <i class="bi {{ s.icon }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="wt-stat-label">{{ s.label }}</p>
+                  <p class="wt-stat-value">{{ s.value }}</p>
+                </div>
+              </div>
+              <p class="wt-stat-sub mb-0">{{ s.sub }}</p>
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Audits awaiting review -->
+  @if (pendingAudits().length > 0) {
+    <div class="wt-panel p-3 d-flex justify-content-between align-items-center flex-wrap gap-3"
+         style="border-left: 4px solid #f59e0b;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="wt-stat-icon bg-warning-subtle text-warning">
+          <i class="bi bi-clipboard-check"></i>
+        </div>
+        <div>
+          <p class="mb-0 fw-semibold">
+            {{ pendingAudits().length }} audit{{ pendingAudits().length > 1 ? 's' : '' }} awaiting your review
+          </p>
+          <p class="mb-0 text-muted small">Submitted by Compliance Officer — approve or reject to close the loop.</p>
+        </div>
+      </div>
+      <a routerLink="/compliance/audits" class="btn btn-success rounded-3 fw-semibold">
+        Review Audits <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  }
+
+  <!-- Quick actions -->
+  <section>
+    <div class="wt-section-label">Quick Actions</div>
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <a routerLink="/identity/users" class="wt-quick-card">
+          <i class="bi bi-people text-success wt-quick-icon"></i>
+          <p class="wt-quick-title">Users</p>
+          <p class="wt-quick-sub mb-0">Manage accounts</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a routerLink="/compliance/audits" class="wt-quick-card">
+          <i class="bi bi-patch-check text-warning wt-quick-icon"></i>
+          <p class="wt-quick-title">Audit Reviews</p>
+          <p class="wt-quick-sub mb-0">Approve / reject</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a routerLink="/compliance/records" class="wt-quick-card">
+          <i class="bi bi-eye-fill text-info wt-quick-icon"></i>
+          <p class="wt-quick-title">Issue Oversight</p>
+          <p class="wt-quick-sub mb-0">View all reports</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a routerLink="/reporting" class="wt-quick-card">
+          <i class="bi bi-graph-up text-success wt-quick-icon"></i>
+          <p class="wt-quick-title">Reports</p>
+          <p class="wt-quick-sub mb-0">Org-wide insights</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

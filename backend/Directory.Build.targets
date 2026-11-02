@@ -1,0 +1,16 @@
+<Project>
+  <!--
+    Workaround for .NET SDK 10.0.201 bug:
+    Microsoft.NET.Sdk.DefaultItems.Shared.targets unconditionally includes 'ocelot.json'
+    as a Content item for ALL projects. Projects without the file fail with MSB3030.
+    This target runs after AssignTargetPaths to remove the phantom item from any project
+    that does not have an ocelot.json file. Gateway projects that do have the file are unaffected.
+  -->
+  <Target Name="RemoveOcelotJsonIfMissing" AfterTargets="AssignTargetPaths">
+    <ItemGroup Condition="!Exists('$(MSBuildProjectDirectory)\ocelot.json')">
+      <Content Remove="ocelot.json" />
+      <ContentWithTargetPath Remove="ocelot.json" />
+      <_ThisProjectItemsToCopyToOutputDirectory Remove="ocelot.json" />
+    </ItemGroup>
+  </Target>
+</Project>

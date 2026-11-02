@@ -1,0 +1,47 @@
+# Build output
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment / secrets
+appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/.env
+**/.env.*
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build logs
+*.binlog
+*.binlog.*
+
+# Claude Code internal files
+.claude/

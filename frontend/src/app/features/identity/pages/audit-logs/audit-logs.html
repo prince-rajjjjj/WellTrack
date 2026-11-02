@@ -1,0 +1,153 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Audit Logs</h3>
+      <p class="text-muted mb-0">{{ logService.totalCount() }} log entries · Admin only</p>
+    </div>
+    <span class="badge bg-warning-subtle text-warning fs-6 px-3 py-2">
+      <i class="bi bi-shield-lock me-1"></i>Sensitive Data
+    </span>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-circle-fill"></i>{{ error() }}
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-9">
+          <div class="search-box position-relative">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control form-control-lg ps-5"
+              placeholder="Search by action or resource (e.g., Login, Auth, Update)"
+              [ngModel]="searchTerm()"
+              (ngModelChange)="onSearchChange($event)"
+            />
+            @if (searchTerm()) {
+              <button class="btn-clear-search" (click)="clearSearch()">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-secondary btn-lg w-100" (click)="fetchLogs()" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+            } @else {
+              <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs Table -->
+  <div class="card border-0 shadow-sm position-relative">
+    <div class="card-body p-0">
+
+      @if (loading()) {
+        <div class="loading-overlay">
+          <div class="text-center">
+            <div class="spinner-grow text-success me-1" style="width: 12px; height: 12px;"></div>
+            <div class="spinner-grow text-success me-1" style="width: 12px; height: 12px; animation-delay: 0.2s;"></div>
+            <div class="spinner-grow text-success" style="width: 12px; height: 12px; animation-delay: 0.4s;"></div>
+            <p class="text-muted mt-3 mb-0 fw-medium">Loading audit logs...</p>
+          </div>
+        </div>
+      }
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4">Action</th>
+              <th>User</th>
+              <th>Resource</th>
+              <th class="pe-4">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logService.logs(); track log.id) {
+              <tr>
+                <td class="ps-4">
+                  <span class="badge px-3 py-2 d-inline-flex align-items-center gap-2"
+                        [ngClass]="actionBadgeClass(log.action)">
+                    <i class="bi" [ngClass]="actionIcon(log.action)"></i>
+                    {{ log.action }}
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm">
+                      {{ userName(log.userId).charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <div class="fw-semibold small">{{ userName(log.userId) }}</div>
+                      <div class="text-muted" style="font-size: 0.75rem;">{{ userEmail(log.userId) }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark px-2 py-1">{{ log.resource }}</span>
+                </td>
+                <td class="pe-4">
+                  <div class="small">{{ log.timestamp | date:'medium' }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">
+                    {{ log.timestamp | date:'shortTime' }}
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              @if (!loading()) {
+                <tr>
+                  <td colspan="4" class="text-center py-5 text-muted">
+                    <i class="bi bi-journal-x fs-1 d-block mb-2 opacity-50"></i>
+                    No audit logs found
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (logService.totalPages() > 1) {
+        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+          <small class="text-muted">
+            Page {{ logService.page() }} of {{ logService.totalPages() }} · {{ logService.totalCount() }} total
+          </small>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="logService.page() === 1">
+                <button class="page-link" (click)="goToPage(logService.page() - 1)">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </li>
+              @for (p of pageNumbers(); track p) {
+                <li class="page-item" [class.active]="p === logService.page()">
+                  <button class="page-link" (click)="goToPage(p)">{{ p }}</button>
+                </li>
+              }
+              <li class="page-item" [class.disabled]="logService.page() === logService.totalPages()">
+                <button class="page-link" (click)="goToPage(logService.page() + 1)">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

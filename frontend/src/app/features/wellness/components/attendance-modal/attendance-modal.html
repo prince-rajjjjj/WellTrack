@@ -1,0 +1,139 @@
+<div class="modal-backdrop-custom" (click)="onBackdropClick($event)">
+  <div class="modal-dialog-custom">
+    <div class="card border-0 shadow-lg" style="border-radius:16px;">
+      <div class="card-body p-4">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">
+              <i class="bi bi-people text-success me-2"></i>Attendance
+            </h5>
+            <p class="text-muted small mb-0">{{ sessionTitle }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="close()"></button>
+        </div>
+
+        @if (error()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-exclamation-circle-fill"></i>{{ error() }}
+          </div>
+        }
+
+        @if (notStarted()) {
+          <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-hourglass-split"></i>
+            <div>Start the activity before taking attendance.</div>
+          </div>
+        } @else if (finalized) {
+          <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-lock-fill"></i>
+            <div>Attendance for this activity has been finalized. No further edits.</div>
+          </div>
+        } @else if (isLocked() && !inProgress()) {
+          <div class="alert alert-secondary d-flex align-items-center gap-2 py-2 px-3 mb-3">
+            <i class="bi bi-info-circle"></i>
+            <div>Activity is no longer in progress. Attendance is read-only.</div>
+          </div>
+        }
+
+        <!-- Summary + bulk actions -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+          <div class="small">
+            <strong>{{ presentCount() }}/{{ totalCount() }}</strong>
+            <span class="text-muted"> marked present</span>
+          </div>
+          @if (!isLocked() && totalCount() > 0) {
+            <div class="btn-group btn-group-sm" role="group">
+              <button class="btn btn-outline-success" (click)="markAll(true)">
+                <i class="bi bi-check2-all me-1"></i>All Present
+              </button>
+              <button class="btn btn-outline-secondary" (click)="markAll(false)">
+                <i class="bi bi-x-lg me-1"></i>All Absent
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Roster -->
+        @if (loading()) {
+          <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-success"></div>
+            <p class="text-muted small mt-2 mb-0">Loading roster...</p>
+          </div>
+        } @else if (totalCount() === 0) {
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+            <p class="mb-0 small">No employees have joined yet.</p>
+          </div>
+        } @else {
+          <div class="roster-list">
+            @for (r of roster(); track r.employeeID) {
+              <div class="roster-row d-flex align-items-center gap-3 py-2 px-3 border-bottom">
+                <div class="employee-avatar">{{ initial(r.employeeName) }}</div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ r.employeeName }}</div>
+                  <div class="text-muted small text-truncate" style="max-width:240px;">{{ r.employeeID }}</div>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn"
+                          [class.btn-success]="r.isPresent"
+                          [class.btn-outline-secondary]="!r.isPresent"
+                          [disabled]="isLocked()"
+                          (click)="toggle(r, true)">
+                    <i class="bi bi-check-circle me-1"></i>Present
+                  </button>
+                  <button class="btn"
+                          [class.btn-danger]="!r.isPresent"
+                          [class.btn-outline-secondary]="r.isPresent"
+                          [disabled]="isLocked()"
+                          (click)="toggle(r, false)">
+                    <i class="bi bi-x-circle me-1"></i>Absent
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-secondary px-4" (click)="close()">Close</button>
+          @if (!isLocked()) {
+            <button type="button"
+                    class="btn btn-success px-4 fw-semibold"
+                    [disabled]="submitting() || totalCount() === 0"
+                    (click)="submit()">
+              @if (submitting()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Submitting...
+              } @else {
+                <i class="bi bi-check2-square me-2"></i>Submit Attendance
+              }
+            </button>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-backdrop-custom {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5); display:flex;
+  align-items:center; justify-content:center;
+  z-index:1050; animation:fadeIn 0.2s;
+}
+.modal-dialog-custom { width:100%; max-width:640px; margin:1rem; animation:slideUp 0.2s; max-height:90vh; overflow-y:auto; }
+.roster-list { max-height: 50vh; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; }
+.roster-row:last-child { border-bottom: none !important; }
+.employee-avatar {
+  width:36px; height:36px; border-radius:50%;
+  background:#dcfce7; color:#166534;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:0.85rem; flex-shrink:0;
+}
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+</style>

@@ -1,0 +1,307 @@
+<div class="container py-4">
+
+  <!-- Header card with avatar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+             style="width: 72px; height: 72px; font-size: 2rem;">
+          {{ initial() }}
+        </div>
+        <div class="flex-grow-1">
+          <h4 class="fw-bold mb-1">{{ profile()?.name ?? 'Loading...' }}</h4>
+          <p class="text-muted mb-0">
+            <i class="bi bi-envelope me-1"></i>{{ profile()?.email }}
+          </p>
+          <span class="badge bg-success-subtle text-success mt-2">
+            <i class="bi bi-shield-check me-1"></i>{{ profile()?.role }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link"
+              [class.active]="activeTab() === 'info'"
+              (click)="activeTab.set('info')">
+        <i class="bi bi-person me-2"></i>Profile Info
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link"
+              [class.active]="activeTab() === 'password'"
+              (click)="activeTab.set('password')">
+        <i class="bi bi-key me-2"></i>Change Password
+      </button>
+    </li>
+  </ul>
+
+  <!-- Profile Info Tab -->
+  @if (activeTab() === 'info') {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+
+        <h5 class="fw-bold mb-1">Personal Information</h5>
+        <p class="text-muted small mb-4">Update your name and contact details.</p>
+
+        @if (profileError()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3">
+            <i class="bi bi-exclamation-circle-fill"></i>{{ profileError() }}
+          </div>
+        }
+        @if (profileSuccess()) {
+          <div class="alert alert-success d-flex align-items-center gap-2 py-2 px-3">
+            <i class="bi bi-check-circle-fill"></i>{{ profileSuccess() }}
+          </div>
+        }
+
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" novalidate>
+
+          <div class="row g-3">
+            <!-- Name -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Full Name</label>
+              <input type="text"
+                     class="form-control form-control-lg"
+                     [class.is-invalid]="name.invalid && name.touched"
+                     formControlName="name"
+                     placeholder="Your full name" />
+              @if (name.touched && name.hasError('required')) {
+                <div class="invalid-feedback">Name is required.</div>
+              }
+              @if (name.touched && name.hasError('minlength')) {
+                <div class="invalid-feedback">Minimum 2 characters.</div>
+              }
+            </div>
+
+            <!-- Phone with +91 prefix -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phone</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light fw-semibold">+91</span>
+                <input type="tel"
+                       class="form-control form-control-lg"
+                       [class.is-invalid]="phone.invalid && phone.touched"
+                       formControlName="phone"
+                       placeholder="9876543210"
+                       maxlength="10"
+                       inputmode="numeric" />
+              </div>
+              @if (phone.touched && phone.hasError('required')) {
+                <div class="text-danger small mt-1">Phone is required.</div>
+              }
+              @if (phone.touched && phone.hasError('pattern')) {
+                <div class="text-danger small mt-1">
+                  Phone must be exactly 10 digits, numbers only.
+                </div>
+              }
+            </div>
+
+            <!-- Email (read-only) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Email</label>
+              <input type="email"
+                     class="form-control form-control-lg bg-light"
+                     [value]="profile()?.email"
+                     readonly />
+              <small class="text-muted">Email cannot be changed.</small>
+            </div>
+
+            <!-- Role (read-only) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Role</label>
+              <input type="text"
+                     class="form-control form-control-lg bg-light"
+                     [value]="profile()?.role"
+                     readonly />
+              <small class="text-muted">Role is assigned by admin.</small>
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit"
+                    class="btn btn-primary px-4"
+                    [disabled]="profileLoading()">
+              @if (profileLoading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+              } @else {
+                <i class="bi bi-check-circle me-2"></i>Save Changes
+              }
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="loadProfile()">
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Change Password Tab -->
+  @if (activeTab() === 'password') {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+
+        <h5 class="fw-bold mb-1">Change Password</h5>
+        <p class="text-muted small mb-4">Use a strong password you don't use elsewhere.</p>
+
+        @if (passwordError()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3">
+            <i class="bi bi-exclamation-circle-fill"></i>{{ passwordError() }}
+          </div>
+        }
+        @if (passwordSuccess()) {
+          <div class="alert alert-success d-flex align-items-center gap-2 py-2 px-3">
+            <i class="bi bi-check-circle-fill"></i>{{ passwordSuccess() }}
+          </div>
+        }
+
+        <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" novalidate>
+
+          <!-- Current password -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Current Password</label>
+            <div class="input-group">
+              <input [type]="showCurrent ? 'text' : 'password'"
+                     class="form-control form-control-lg border-end-0"
+                     [class.is-invalid]="currentPassword.invalid && currentPassword.touched"
+                     formControlName="currentPassword"
+                     placeholder="Enter current password" />
+              <button type="button"
+                      class="btn btn-outline-secondary border-start-0"
+                      (click)="showCurrent = !showCurrent"
+                      tabindex="-1">
+                <i class="bi"
+                   [class.bi-eye]="!showCurrent"
+                   [class.bi-eye-slash]="showCurrent"></i>
+              </button>
+              @if (currentPassword.touched && currentPassword.hasError('required')) {
+                <div class="invalid-feedback">Current password is required.</div>
+              }
+            </div>
+          </div>
+
+          <!-- New password -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">New Password</label>
+            <div class="input-group">
+              <input [type]="showNew ? 'text' : 'password'"
+                     class="form-control form-control-lg border-end-0"
+                     [class.is-invalid]="newPassword.invalid && newPassword.touched"
+                     formControlName="newPassword"
+                     placeholder="Enter New Password" />
+              <button type="button"
+                      class="btn btn-outline-secondary border-start-0"
+                      (click)="showNew = !showNew"
+                      tabindex="-1">
+                <i class="bi"
+                   [class.bi-eye]="!showNew"
+                   [class.bi-eye-slash]="showNew"></i>
+              </button>
+              @if (newPassword.touched && newPassword.hasError('required')) {
+                <div class="invalid-feedback">New password is required.</div>
+              }
+            </div>
+
+            <!-- ★ Instant error when new === current -->
+            @if (newPassword.value && passwordForm.hasError('sameAsCurrent')) {
+              <div class="text-danger small mt-1">
+                <i class="bi bi-exclamation-circle me-1"></i>
+                New password must be different from your current password.
+              </div>
+            }
+
+            <!-- Live strength meter -->
+            @if (passwordStrength() > 0) {
+              <div class="mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">Password strength</small>
+                  <small class="fw-semibold text-{{ strengthLabel().color }}">
+                    {{ strengthLabel().label }}
+                  </small>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-{{ strengthLabel().color }}"
+                       [style.width.%]="(passwordStrength() / 5) * 100"></div>
+                </div>
+              </div>
+            }
+
+            <!-- Requirements checklist -->
+            <ul class="password-checklist mt-3 mb-0">
+              <li [class.met]="hasMinLength()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasMinLength()"
+                   [class.bi-circle]="!hasMinLength()"></i>
+                At least 8 characters
+              </li>
+              <li [class.met]="hasLowercase()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasLowercase()"
+                   [class.bi-circle]="!hasLowercase()"></i>
+                One lowercase letter (a–z)
+              </li>
+              <li [class.met]="hasUppercase()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasUppercase()"
+                   [class.bi-circle]="!hasUppercase()"></i>
+                One uppercase letter (A–Z)
+              </li>
+              <li [class.met]="hasNumber()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasNumber()"
+                   [class.bi-circle]="!hasNumber()"></i>
+                One number (0–9)
+              </li>
+              <li [class.met]="hasSpecial()">
+                <i class="bi"
+                   [class.bi-check-circle-fill]="hasSpecial()"
+                   [class.bi-circle]="!hasSpecial()"></i>
+                One special character (!&#64;#$%^&*)
+              </li>
+            </ul>
+          </div>
+
+          <!-- Confirm password -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Confirm New Password</label>
+            <div class="input-group">
+              <input [type]="showConfirm ? 'text' : 'password'"
+                     class="form-control form-control-lg border-end-0"
+                     [class.is-invalid]="confirmPassword.touched && passwordForm.hasError('mismatch')"
+                     formControlName="confirmPassword"
+                     placeholder="Re-enter new password" />
+              <button type="button"
+                      class="btn btn-outline-secondary border-start-0"
+                      (click)="showConfirm = !showConfirm"
+                      tabindex="-1">
+                <i class="bi"
+                   [class.bi-eye]="!showConfirm"
+                   [class.bi-eye-slash]="showConfirm"></i>
+              </button>
+              @if (confirmPassword.touched && passwordForm.hasError('mismatch')) {
+                <div class="invalid-feedback d-block">Passwords do not match.</div>
+              }
+            </div>
+          </div>
+
+          <button type="submit"
+                  class="btn btn-primary px-4"
+                  [disabled]="passwordLoading()">
+            @if (passwordLoading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>Updating...
+            } @else {
+              <i class="bi bi-shield-check me-2"></i>Update Password
+            }
+          </button>
+
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

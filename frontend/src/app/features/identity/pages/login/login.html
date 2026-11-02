@@ -1,0 +1,115 @@
+<div class="d-flex" style="min-height: 100vh;">
+
+  <!-- LEFT SIDE -->
+  <div class="d-none d-lg-flex flex-column align-items-center justify-content-center text-white"
+     style="flex: 1; background: linear-gradient(135deg, #16a34a 0%, #3da463 100%);">
+    <div class="text-center px-5">
+      <i class="bi bi-heart-pulse-fill mb-4 d-block" style="font-size: 5rem; opacity: 0.9;"></i>
+      <h2 class="fw-bold mb-3">Track Your Wellness</h2>
+      <p class="opacity-75 fs-5">Monitor progress, achieve goals,<br>and stay healthy every day.</p>
+      <div class="mt-5 d-flex justify-content-center gap-2">
+        <div class="rounded-circle bg-white opacity-25" style="width:12px; height:12px;"></div>
+        <div class="rounded-circle bg-white opacity-50" style="width:12px; height:12px;"></div>
+        <div class="rounded-circle bg-white opacity-25" style="width:12px; height:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="d-flex flex-column justify-content-center bg-white px-4 px-md-5"
+       style="flex: 1;">
+    <div style="max-width: 440px; width: 100%; margin: 0 auto;">
+
+      <!-- Logo -->
+      <div class="mb-5">
+        <span class="fw-bold fs-5 text-primary">
+          <i class="bi bi-heart-pulse-fill me-2"></i>WellTrack
+        </span>
+      </div>
+
+      <!-- Title -->
+      <h3 class="fw-bold mb-1" style="font-size: 2rem;">Log In</h3>
+      <p class="text-muted mb-4">Enter your email and password to login to your dashboard.</p>
+
+      <!-- Server error -->
+      @if (error()) {
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-4" role="alert">
+          <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold">Email</label>
+          <input
+            id="email"
+            type="email"
+            class="form-control form-control-lg"
+            [class.is-invalid]="email.invalid && email.touched"
+            formControlName="email"
+            placeholder="info@company.com"
+            autocomplete="email"
+          />
+          @if (email.touched && email.hasError('required')) {
+            <div class="invalid-feedback">Email is required.</div>
+          }
+          @if (email.touched && email.hasError('email')) {
+            <div class="invalid-feedback">Please enter a valid email.</div>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold">Password</label>
+          <div class="input-group">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control form-control-lg border-end-0"
+              [class.is-invalid]="password.invalid && password.touched"
+              formControlName="password"
+              placeholder="Enter your Password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="btn btn-outline-secondary border-start-0"
+              (click)="showPassword = !showPassword"
+              tabindex="-1"
+            >
+              <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+            </button>
+            @if (password.touched && password.hasError('required')) {
+              <div class="invalid-feedback">Password is required.</div>
+            }
+            @if (password.touched && password.hasError('minlength')) {
+              <div class="invalid-feedback">Minimum 6 characters.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-grid">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg fw-semibold"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Signing in...
+            } @else {
+              Sign In
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>

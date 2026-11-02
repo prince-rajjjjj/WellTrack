@@ -1,0 +1,47 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "WellTrack.Services.Compliance\\WellTrack.Services.Compliance.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Compliance"
+      },
+      {
+        "Path": "WellTrack.Services.Engagement\\WellTrack.Services.Engagement.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Engagement"
+      },
+      {
+        "Path": "WellTrack.Services.Identity\\WellTrack.Services.Identity.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Identity"
+      },
+      {
+        "Path": "WellTrack.Services.Notification\\WellTrack.Services.Notification.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Notification"
+      },
+      {
+        "Path": "WellTrack.Services.Participation\\WellTrack.Services.Participation.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Participation"
+      },
+      {
+        "Path": "WellTrack.Services.Reporting\\WellTrack.Services.Reporting.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Reporting"
+      },
+      {
+        "Path": "WellTrack.Services.Wellness\\WellTrack.Services.Wellness.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Services.Wellness"
+      },
+      {
+        "Path": "WellTrack.Gateway\\WellTrack.Gateway.csproj",
+        "Action": "Start",
+        "DebugTarget": "WellTrack.Gateway"
+      }
+    ]
+  }
+]

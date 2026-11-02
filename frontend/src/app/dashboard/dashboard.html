@@ -1,0 +1,7 @@
+@switch (role) {
+  @case ('Admin')             { <app-admin-dashboard /> }
+  @case ('HR')                { <app-hr-dashboard /> }
+  @case ('ComplianceOfficer') { <app-compliance-dashboard /> }
+  @case ('Coach')             { <app-coach-dashboard /> }
+  @default                    { <app-employee-dashboard /> }
+}

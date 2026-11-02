@@ -1,0 +1,111 @@
+<div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-column">
+
+  <!-- Top Row — Status Badge + Delete -->
+  <div class="d-flex align-items-start justify-content-between mb-3">
+    <app-status-badge [status]="goal.status"></app-status-badge>
+    @if (isActive) {
+      <button class="btn btn-sm btn-outline-secondary rounded-3 px-2"
+              (click)="onDeleteClick()">
+        <i class="bi bi-trash me-1"></i>Delete
+      </button>
+    }
+  </div>
+
+  <!-- Goal Name -->
+  <p class="fw-medium mb-3 text-dark" style="font-size:17px;">{{ goal.description }}</p>
+
+  <!-- Progress Numbers — above bar -->
+  <div class="d-flex justify-content-between align-items-baseline mb-1">
+    <span class="text-muted small">{{ goal.currentValue }} / {{ goal.targetValue }}</span>
+    <span class="fw-bold" style="font-size:22px;color:#1D9E75;">
+      {{ Math.min(100, goal.progressPercentage) | number:'1.0-0' }}%
+    </span>
+  </div>
+
+  <!-- Progress Bar — 6px, always green -->
+  <div class="mb-3">
+    <app-progress-bar [value]="goal.progressPercentage" [showText]="false"
+                      color="success" [height]="6"></app-progress-bar>
+  </div>
+
+  <!-- Date Strip -->
+  <div class="border rounded-3 d-flex mb-3" style="overflow:hidden;">
+    <div class="px-3 py-2 flex-grow-1">
+      <p class="mb-0 text-muted" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;">Start</p>
+      <p class="mb-0 small fw-medium">{{ goal.startDate | date:'mediumDate' }}</p>
+    </div>
+    <div class="border-start"></div>
+    <div class="px-3 py-2 flex-grow-1 d-flex align-items-center justify-content-between gap-2">
+      <div>
+        <p class="mb-0 text-muted" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;">Deadline</p>
+        <p class="mb-0 small fw-medium">{{ goal.endDate | date:'mediumDate' }}</p>
+      </div>
+      @if (isActive && !showExtendInput) {
+        <button class="btn btn-sm btn-outline-secondary rounded-3 px-2 py-0"
+                style="font-size:0.7rem;"
+                (click)="showExtendInput = true; showProgressInput = false">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Extend deadline — inline below date strip -->
+  @if (isActive && showExtendInput) {
+    <div class="d-flex gap-2 align-items-center mb-3">
+      <input type="date" class="form-control form-control-sm rounded-3 flex-grow-1"
+             [(ngModel)]="newEndDate" [min]="minEndDate">
+      <button class="btn btn-sm btn-primary rounded-3 px-3"
+              (click)="saveEndDate()">Save</button>
+      <button class="btn btn-sm btn-outline-secondary rounded-3"
+              (click)="showExtendInput = false">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Footer -->
+  <div class="mt-auto pt-3 border-top">
+    @if (isActive) {
+      @if (showProgressInput) {
+        <div class="d-flex gap-2 align-items-center">
+          <input #progressInput type="number"
+                 class="form-control form-control-sm rounded-3"
+                 [placeholder]="'Current: ' + goal.currentValue"
+                 min="0" [max]="goal.targetValue">
+          <button class="btn btn-sm btn-success rounded-3 px-3"
+                  (click)="saveProgress(progressInput.value)">Save</button>
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  (click)="showProgressInput = false; progressError = ''">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        @if (progressError) {
+          <p class="text-danger small mb-0 mt-1">{{ progressError }}</p>
+        }
+      } @else {
+        <div class="d-flex align-items-center justify-content-between">
+          @if (daysLeft <= 7) {
+            <span class="small text-warning">
+              <i class="bi bi-clock me-1"></i>{{ daysLeft }} day{{ daysLeft !== 1 ? 's' : '' }} left
+            </span>
+          } @else {
+            <span></span>
+          }
+          <button class="btn btn-outline-success rounded-3 px-3"
+                  (click)="showProgressInput = true; showExtendInput = false">
+            <i class="bi bi-arrow-up-circle me-1"></i>Update progress
+          </button>
+        </div>
+      }
+    }
+    @if (goal.status === 'Completed') {
+      <div class="text-center">
+        <span class="text-muted" style="font-size:0.72rem;">
+          <i class="bi bi-lock-fill me-1"></i>Goal closed
+        </span>
+      </div>
+    }
+  </div>
+
+</div>

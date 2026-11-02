@@ -1,0 +1,141 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">My Participation</h4>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+      <div class="card text-center p-3">
+        <div class="fs-2 fw-bold text-primary">{{ participation.totalCount() }}</div>
+        <div class="text-muted small">Total</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card text-center p-3">
+        <div class="fs-2 fw-bold text-success">{{ participation.completedCount() }}</div>
+        <div class="text-muted small">Completed</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card text-center p-3">
+        <div class="fs-2 fw-bold text-warning">{{ participation.activeCount() }}</div>
+        <div class="text-muted small">Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <ul class="nav nav-tabs mb-4">
+    @for (tab of statusTabs; track tab) {
+      <li class="nav-item">
+        <button class="nav-link"
+          [class.active]="filterStatus() === tab"
+          (click)="setFilter(tab)">
+          {{ tab }}
+        </button>
+      </li>
+    }
+  </ul>
+
+  <!-- Loading -->
+  @if (participation.loading()) {
+    <wt-skeleton variant="row" [count]="5"></wt-skeleton>
+  }
+
+  <!-- Error -->
+  @if (participation.error()) {
+    <div class="alert alert-danger">{{ participation.error() }}</div>
+  }
+
+  <!-- List -->
+  @if (!participation.loading() && !participation.error()) {
+    @if (totalCount() === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-activity fs-1"></i>
+        <p class="mt-2">No participation records found.</p>
+      </div>
+    } @else {
+      <div class="row g-3">
+        @for (record of pagedParticipations(); track record.id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+
+              <!-- Title + Badge -->
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-activity text-primary fs-5"></i>
+                  <h6 class="fw-semibold mb-0 text-dark">
+                    {{ record.activityTitle ?? 'Activity' }}
+                  </h6>
+                </div>
+                <span class="badge rounded-pill"
+                  [class.bg-success]="record.status === 'Completed'"
+                  [class.bg-warning]="record.status === 'Active'"
+                  [class.text-dark]="record.status === 'Active'">
+                  {{ record.status }}
+                </span>
+              </div>
+
+              <hr class="my-2">
+
+              <!-- Program -->
+              @if (programName(record)) {
+                <div class="d-flex align-items-center gap-2 text-muted small mb-1">
+                  <i class="bi bi-folder2"></i>
+                  <span>{{ programName(record) }}</span>
+                </div>
+              }
+
+              <!-- Date -->
+              <div class="d-flex align-items-center gap-2 text-muted small mb-2">
+                <i class="bi bi-calendar3"></i>
+                <span>{{ record.date | date: 'dd MMM yyyy' }}</span>
+              </div>
+
+              <!-- Notes -->
+              @if (record.notes) {
+                <div class="d-flex align-items-start gap-2 text-muted small mt-1">
+                  <i class="bi bi-chat-left-text mt-1"></i>
+                  <span>{{ record.notes }}</span>
+                </div>
+              }
+
+              @if (record.status === 'Completed') {
+                <div class="text-center mt-3">
+                  <span class="text-muted" style="font-size: 0.72rem;">
+                    <i class="bi bi-lock-fill me-1"></i>Completed
+                  </span>
+                </div>
+              }
+
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          @for (p of pageNumbers(); track p) {
+            <button class="btn btn-sm rounded-3"
+                    [class]="p === page() ? 'btn-primary' : 'btn-outline-secondary'"
+                    (click)="goToPage(p)">{{ p }}</button>
+          }
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <span class="text-muted small ms-2">{{ page() }} / {{ totalPages() }}</span>
+        </div>
+      }
+    }
+  }
+
+</div>

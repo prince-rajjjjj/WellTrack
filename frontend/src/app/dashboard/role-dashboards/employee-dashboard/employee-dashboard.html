@@ -1,0 +1,112 @@
+<div class="d-flex flex-column gap-4">
+
+  <!-- Hero -->
+  <div class="wt-hero d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h1 class="wt-hero-title">Welcome back, {{ userName }}</h1>
+      <p class="wt-hero-subtitle mb-2">Here's your wellness overview for today.</p>
+      <span class="wt-hero-pill">{{ userRole }}</span>
+    </div>
+    <div class="text-end">
+      <div class="wt-hero-date">{{ today | date:'EEEE' }}</div>
+      <div class="fw-semibold">{{ today | date:'MMMM d, y' }}</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <section>
+    <div class="wt-section-label">Your Progress</div>
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <a routerLink="/participation/goals" class="wt-stat-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="wt-stat-icon bg-success-subtle text-success">
+              <i class="bi bi-bullseye"></i>
+            </div>
+            <div class="flex-grow-1">
+              <p class="wt-stat-label">Active Goals</p>
+              @if (goalService.loading()) {
+                <div class="spinner-border spinner-border-sm text-success"></div>
+              } @else {
+                <p class="wt-stat-value">{{ goalService.activeGoals().length }}</p>
+              }
+            </div>
+          </div>
+          <p class="wt-stat-sub mb-0">
+            {{ goalService.totalCount() }} total · {{ goalService.completedGoals().length }} completed
+          </p>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/participation" class="wt-stat-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="wt-stat-icon bg-primary-subtle text-primary">
+              <i class="bi bi-activity"></i>
+            </div>
+            <div class="flex-grow-1">
+              <p class="wt-stat-label">Activities Joined</p>
+              @if (participationService.loading()) {
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+              } @else {
+                <p class="wt-stat-value">{{ participationService.totalCount() }}</p>
+              }
+            </div>
+          </div>
+          <p class="wt-stat-sub mb-0">
+            {{ participationService.completedCount() }} completed · {{ participationService.activeCount() }} active
+          </p>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/participation" class="wt-stat-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="wt-stat-icon bg-warning-subtle text-warning">
+              <i class="bi bi-bar-chart-line"></i>
+            </div>
+            <div class="flex-grow-1">
+              <p class="wt-stat-label">Activities Done</p>
+              @if (participationService.loading()) {
+                <div class="spinner-border spinner-border-sm text-warning"></div>
+              } @else {
+                <p class="wt-stat-value">{{ participationService.completedCount() }}</p>
+              }
+            </div>
+          </div>
+          <p class="wt-stat-sub mb-0">{{ participationService.totalCount() }} total joined</p>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/notifications" class="wt-stat-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="wt-stat-icon bg-info-subtle text-info">
+              <i class="bi bi-bell"></i>
+            </div>
+            <div class="flex-grow-1">
+              <p class="wt-stat-label">Notifications</p>
+              <p class="wt-stat-value">0</p>
+            </div>
+          </div>
+          <p class="wt-stat-sub mb-0">Check your latest updates</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick actions -->
+  <section>
+    <div class="wt-section-label">Quick Actions</div>
+    <div class="row g-3">
+      @for (action of quickActions; track action.route) {
+        <div class="col-6 col-md-4 col-lg-2">
+          <a [routerLink]="action.route" class="wt-quick-card">
+            <i class="bi {{ action.icon }} {{ action.color }} wt-quick-icon"></i>
+            <p class="wt-quick-title">{{ action.label }}</p>
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+</div>

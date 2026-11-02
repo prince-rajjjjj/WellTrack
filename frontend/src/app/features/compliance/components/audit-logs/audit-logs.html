@@ -1,0 +1,173 @@
+<div>
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">Audits</h4>
+      <p class="text-muted small mb-0">{{ svc.draftCount() }} draft{{ svc.draftCount() !== 1 ? 's' : '' }} in progress</p>
+    </div>
+    @if (isComplianceOfficer) {
+      <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="openForm()">
+        <i class="bi bi-plus-lg me-1"></i> New Audit
+      </button>
+    }
+  </div>
+
+  <!-- Inline create form (Compliance Officer only) -->
+  @if (showForm() && isComplianceOfficer) {
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <h6 class="fw-semibold mb-3">Create Audit Draft</h6>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-medium">Scope <span class="text-danger">*</span></label>
+          <input class="form-control form-control-sm rounded-3" [(ngModel)]="scope"
+                 placeholder="e.g. Q2 Safety Compliance Review">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-medium">Initial Findings <span class="text-muted">(optional)</span></label>
+          <input class="form-control form-control-sm rounded-3" [(ngModel)]="findings"
+                 placeholder="Any initial observations…">
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="submit()"
+                [disabled]="svc.auditsLoading()">
+          @if (svc.auditsLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Create Draft
+        </button>
+        <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="closeForm()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Audit cards -->
+  @if (svc.auditsLoading() && svc.audits().length === 0) {
+    <wt-skeleton variant="card" [count]="6"></wt-skeleton>
+  } @else if (svc.audits().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-shield-check fs-2 d-block mb-2"></i>
+      No audits yet. Click <strong>New Audit</strong> to start one.
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (a of pagedAudits(); track a.id) {
+        <div class="col-md-6 col-lg-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+
+            <!-- Status badge + date -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="badge rounded-pill px-3 py-1 bg-{{ statusColor(a.status) }}-subtle text-{{ statusColor(a.status) }} fw-semibold">
+                {{ a.status }}
+              </span>
+              <span class="text-muted" style="font-size:0.7rem;">{{ a.date | date:'mediumDate' }}</span>
+            </div>
+
+            <!-- Scope -->
+            <p class="fw-semibold mb-1 small">{{ a.scope }}</p>
+
+            @if (a.findings) {
+              <p class="text-muted mb-2" style="font-size:0.75rem;">
+                <i class="bi bi-search me-1"></i>{{ a.findings }}
+              </p>
+            }
+
+            @if (a.rejectionReason) {
+              <p class="text-danger mb-2" style="font-size:0.75rem;">
+                <i class="bi bi-x-circle me-1"></i>{{ a.rejectionReason }}
+              </p>
+            }
+
+            <!-- Workflow actions per role / status -->
+            <div class="mt-auto pt-3 border-top">
+
+              <!-- ComplianceOfficer: submit draft for review -->
+              @if (isComplianceOfficer && a.status === 'Draft') {
+                <button class="btn btn-outline-primary btn-sm rounded-3 w-100"
+                        (click)="submitDraft(a.id)">
+                  Submit for Review →
+                </button>
+              }
+
+              <!-- Admin: approve or reject a submitted audit -->
+              @if (isAdmin && a.status === 'Submitted') {
+                <div class="d-flex gap-2">
+                  <button class="btn btn-success btn-sm rounded-3 flex-grow-1"
+                          (click)="approve(a.id)">
+                    <i class="bi bi-check2 me-1"></i>Approve
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm rounded-3 flex-grow-1"
+                          (click)="openReject(a.id)">
+                    <i class="bi bi-x-lg me-1"></i>Reject
+                  </button>
+                </div>
+              }
+
+              <!-- Terminal states (no further action) -->
+              @if (a.status === 'Approved') {
+                <span class="text-success small fw-medium">
+                  <i class="bi bi-check-circle-fill me-1"></i>Approved — no further action
+                </span>
+              }
+              @if (a.status === 'Closed') {
+                <span class="text-muted small">
+                  <i class="bi bi-lock-fill me-1"></i>Closed
+                </span>
+              }
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of pageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === page() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ page() }} / {{ totalPages() }}</span>
+      </div>
+    }
+  }
+
+  <!-- Reject reason modal -->
+  @if (rejectingId()) {
+    <div class="modal-backdrop-custom" (click)="cancelReject()">
+      <div class="card border-0 shadow-lg rounded-4 p-4"
+           style="max-width:480px; width:90%;"
+           (click)="$event.stopPropagation()">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-x-circle text-danger me-2"></i>Reject Audit
+        </h6>
+        <p class="text-muted small mb-3">
+          Rejecting will <strong>auto-close</strong> the audit. Please provide a reason.
+        </p>
+        <textarea class="form-control form-control-sm rounded-3 mb-3" rows="3"
+                  [(ngModel)]="rejectReason"
+                  placeholder="Reason for rejection (e.g. insufficient evidence)…"></textarea>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="cancelReject()">
+            Cancel
+          </button>
+          <button class="btn btn-danger btn-sm rounded-3 px-3"
+                  [disabled]="!rejectReason.trim()"
+                  (click)="confirmReject()">
+            Reject &amp; Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

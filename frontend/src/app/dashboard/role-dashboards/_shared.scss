@@ -1,0 +1,157 @@
+/* Shared styles for all 5 role dashboards. */
+
+/* ─── Hero header (green brand gradient) ──────────────────────── */
+.wt-hero {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: #ffffff;
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(22, 163, 74, 0.18);
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 220px;
+    height: 220px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: 80px;
+    bottom: -80px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .wt-hero-title    { font-size: 1.5rem; font-weight: 700; margin: 0; color: #ffffff; }
+  .wt-hero-subtitle { opacity: 0.92; font-size: 0.92rem; margin-top: 0.35rem; color: #ffffff; }
+  .wt-hero-date     { font-size: 0.82rem; opacity: 0.9; color: #ffffff; }
+  .wt-hero-pill {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.25rem 0.85rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+
+/* ─── Section label (small uppercase) ──────────────────────────── */
+.wt-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+/* ─── Stat card ────────────────────────────────────────────────── */
+.wt-stat-card {
+  border: 1px solid #f3f4f6;
+  border-radius: 14px;
+  padding: 1.1rem 1.15rem;
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none !important;
+  display: block;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  height: 100%;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+    border-color: #e5e7eb;
+    color: inherit;
+  }
+
+  .wt-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .wt-stat-label { font-size: 0.78rem; color: #6b7280; margin: 0; font-weight: 500; }
+  .wt-stat-value { font-size: 1.6rem; font-weight: 800; color: #111827; margin: 0; line-height: 1.1; }
+  .wt-stat-sub   { font-size: 0.72rem; color: #9ca3af; margin-top: 0.45rem; }
+}
+
+/* ─── Quick action card ────────────────────────────────────────── */
+.wt-quick-card {
+  border: 1px solid #f3f4f6;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 1.4rem 1rem;
+  text-align: center;
+  color: inherit;
+  text-decoration: none !important;
+  display: block;
+  height: 100%;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+    border-color: #16a34a;
+    color: inherit;
+  }
+
+  .wt-quick-icon {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .wt-quick-title { font-weight: 600; color: #111827; margin: 0; font-size: 0.95rem; }
+  .wt-quick-sub   { font-size: 0.72rem; color: #6b7280; margin-top: 0.2rem; }
+}
+
+/* ─── Panel (cards used for lists / feeds) ─────────────────────── */
+.wt-panel {
+  border: 1px solid #f3f4f6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+/* ─── Severity row (open / resolved feed items) ────────────────── */
+.wt-severity-row {
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #9ca3af;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+
+  &[data-sev="Low"]      { border-left-color: #16a34a; }
+  &[data-sev="Medium"]   { border-left-color: #f59e0b; }
+  &[data-sev="High"]     { border-left-color: #ef4444; }
+  &[data-sev="Critical"] { border-left-color: #7f1d1d; }
+}
+
+/* ─── Legacy hover class (kept for any old usages) ─────────────── */
+.wt-card-hover {
+  transition: transform .15s ease, box-shadow .15s ease;
+  cursor: pointer;
+}
+.wt-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}

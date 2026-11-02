@@ -1,0 +1,92 @@
+<div class="dp-wrapper">
+  <!-- Trigger -->
+  <button type="button"
+          class="dp-input"
+          [class.dp-invalid]="invalid"
+          [class.dp-disabled]="disabled()"
+          (click)="toggleOpen()">
+    <i class="bi bi-calendar3 dp-icon"></i>
+    <span class="dp-text" [class.dp-placeholder]="!display()">
+      {{ display() || placeholder }}
+    </span>
+    <i class="bi bi-chevron-down dp-chevron" [class.up]="isOpen()"></i>
+  </button>
+
+  <!-- Popover — position:fixed so it escapes overflow:hidden modals/cards -->
+  @if (isOpen()) {
+    <div class="dp-popover" [class.dp-up]="placement() === 'top'" (click)="$event.stopPropagation()">
+      <div class="dp-card">
+
+        <!-- Header -->
+        <div class="dp-header">
+          <div>
+            <div class="dp-title">Select {{ mode === 'datetime' ? 'date & time' : 'date' }}</div>
+            <div class="dp-subtitle">{{ months[viewMonth()] }} {{ viewYear() }}</div>
+          </div>
+          <div class="dp-day-chip">
+            <span class="dp-day-chip-num">{{ selectedDate()?.getDate() ?? '—' }}</span>
+          </div>
+        </div>
+
+        <!-- Month nav -->
+        <div class="dp-nav">
+          <button type="button" class="dp-nav-btn" (click)="prevMonth()" aria-label="Previous month">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="dp-nav-label">{{ months[viewMonth()] }} {{ viewYear() }}</div>
+          <button type="button" class="dp-nav-btn" (click)="nextMonth()" aria-label="Next month">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- Weekday row -->
+        <div class="dp-weekdays">
+          @for (w of weekdays; track w) {
+            <div class="dp-weekday">{{ w }}</div>
+          }
+        </div>
+
+        <!-- Day grid -->
+        <div class="dp-grid">
+          @for (cell of grid(); track cell.date.getTime()) {
+            <button type="button"
+                    class="dp-day"
+                    [class.out]="!cell.inMonth"
+                    [class.today]="cell.isToday"
+                    [class.selected]="cell.isSelected"
+                    [disabled]="cell.disabled"
+                    (click)="pickDay(cell)">
+              {{ cell.day }}
+            </button>
+          }
+        </div>
+
+        <!-- Time row (datetime only) -->
+        @if (mode === 'datetime') {
+          <div class="dp-time">
+            <i class="bi bi-clock"></i>
+            <input type="number" min="0" max="23"
+                   [value]="hour() | number:'2.0'"
+                   (input)="onHourChange($any($event.target).value)" />
+            <span class="dp-time-sep">:</span>
+            <input type="number" min="0" max="59"
+                   [value]="minute() | number:'2.0'"
+                   (input)="onMinuteChange($any($event.target).value)" />
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="dp-footer">
+          <button type="button" class="dp-link" (click)="clear()">Clear</button>
+          <div class="dp-footer-right">
+            <button type="button" class="dp-ghost" (click)="selectToday()">Today</button>
+            <button type="button" class="dp-confirm" (click)="confirm()" [disabled]="!selectedDate()">
+              <i class="bi bi-check2 me-1"></i>Confirm
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

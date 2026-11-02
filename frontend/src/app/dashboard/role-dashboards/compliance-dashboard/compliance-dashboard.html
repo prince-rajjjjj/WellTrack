@@ -1,0 +1,126 @@
+<div class="d-flex flex-column gap-4">
+
+  <!-- Hero -->
+  <div class="wt-hero d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h1 class="wt-hero-title">Compliance Workspace</h1>
+      <p class="wt-hero-subtitle mb-2">Author audits and report compliance issues.</p>
+      <span class="wt-hero-pill">Compliance Officer</span>
+    </div>
+    <div class="text-end">
+      <div class="wt-hero-date">{{ today | date:'EEEE' }}</div>
+      <div class="fw-semibold">{{ today | date:'MMMM d, y' }}</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <section>
+    <div class="wt-section-label">Key Metrics</div>
+    @if ((complianceSvc.auditsLoading() || complianceSvc.recordsLoading())
+          && complianceSvc.audits().length === 0
+          && complianceSvc.records().length === 0) {
+      <wt-skeleton variant="stat-card" [count]="4"></wt-skeleton>
+    } @else {
+      <div class="row g-3">
+        @for (s of stats(); track s.label) {
+          <div class="col-6 col-md-3">
+            <a [routerLink]="s.route" class="wt-stat-card">
+              <div class="d-flex align-items-center gap-3">
+                <div class="wt-stat-icon" [ngClass]="'bg-' + s.tone + '-subtle text-' + s.tone">
+                  <i class="bi {{ s.icon }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="wt-stat-label">{{ s.label }}</p>
+                  <p class="wt-stat-value">{{ s.value }}</p>
+                </div>
+              </div>
+              <p class="wt-stat-sub mb-0">{{ s.sub }}</p>
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Drafts reminder -->
+  @if (myDraftAudits().length > 0) {
+    <div class="wt-panel p-3 d-flex justify-content-between align-items-center flex-wrap gap-3"
+         style="border-left: 4px solid #0d6efd;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="wt-stat-icon bg-primary-subtle text-primary">
+          <i class="bi bi-pencil-square"></i>
+        </div>
+        <div>
+          <p class="mb-0 fw-semibold">
+            {{ myDraftAudits().length }} audit draft{{ myDraftAudits().length > 1 ? 's' : '' }} not yet submitted
+          </p>
+          <p class="mb-0 text-muted small">Submit when ready so an Admin can review.</p>
+        </div>
+      </div>
+      <a routerLink="/compliance/audits" class="btn btn-primary rounded-3 fw-semibold">
+        Open Audits <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  }
+
+  <!-- HR closed the loop -->
+  @if (myResolvedReports().length > 0) {
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="wt-section-label mb-0 text-success">HR Closed The Loop On Your Reports</div>
+        <a routerLink="/compliance/records" class="btn btn-sm btn-link text-success text-decoration-none p-0">
+          View all <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="wt-panel p-3">
+        <div class="d-flex flex-column gap-2">
+          @for (r of myResolvedReports(); track r.id) {
+            <div class="wt-severity-row" [attr.data-sev]="r.severity">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <div class="fw-semibold small">{{ r.issueType }}</div>
+                <span class="text-muted small">{{ (r.updatedAt || r.createdAt) | date:'MMM d' }}</span>
+              </div>
+              <div class="text-muted small mb-2">{{ r.programName || 'General' }} · {{ r.policyName }}</div>
+              @if (r.resolutionNotes) {
+                <div class="bg-success-subtle rounded-3 p-2 d-flex gap-2">
+                  <i class="bi bi-chat-quote-fill text-success flex-shrink-0" style="font-size:0.85rem;"></i>
+                  <p class="mb-0 small" style="line-height:1.45;">
+                    <span class="fw-semibold">HR replied:</span> {{ r.resolutionNotes }}
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Quick actions -->
+  <section>
+    <div class="wt-section-label">Quick Actions</div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <a routerLink="/compliance/audits" class="wt-quick-card">
+          <i class="bi bi-shield-check text-primary wt-quick-icon"></i>
+          <p class="wt-quick-title">Log New Audit</p>
+          <p class="wt-quick-sub mb-0">Document a compliance review</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/compliance/records" class="wt-quick-card">
+          <i class="bi bi-clipboard-plus text-warning wt-quick-icon"></i>
+          <p class="wt-quick-title">Report Issue</p>
+          <p class="wt-quick-sub mb-0">Raise a new compliance issue</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/compliance/policies" class="wt-quick-card">
+          <i class="bi bi-file-earmark-text text-success wt-quick-icon"></i>
+          <p class="wt-quick-title">Policies</p>
+          <p class="wt-quick-sub mb-0">Reference all org policies</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,126 @@
+:host { display: block; }
+
+// ── Feedback card (employee view) ────────────────────────────────────
+.feedback-card {
+  border-radius: 0.875rem !important;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09) !important;
+    transform: translateY(-2px);
+  }
+}
+
+// ── New-feedback panel ────────────────────────────────────────────────
+.new-feedback-panel {
+  border-radius: 0.875rem !important;
+  animation: slideDown 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-12px); opacity: 0; }
+  to   { transform: translateY(0);      opacity: 1; }
+}
+
+// ── Star display (read-only, employee cards) ─────────────────────────
+.star-display {
+  display: flex;
+  align-items: center;
+}
+
+.star {
+  font-size: 1.4rem;
+  color: #E5E7EB;
+  line-height: 1;
+
+  &.filled { color: #F59E0B; }
+}
+
+// ── Comment text ─────────────────────────────────────────────────────
+.comment-text {
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ── Coach / HR: programme group card ─────────────────────────────────
+.program-group-card {
+  border-radius: 0.875rem !important;
+  overflow: hidden;
+}
+
+// ── Coach / HR: feedback table ────────────────────────────────────────
+.feedback-table {
+  font-size: 0.875rem;
+
+  th {
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  td { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+// ── Avatar circle ─────────────────────────────────────────────────────
+.avatar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width:  2rem;
+  height: 2rem;
+  min-width: 2rem;
+  border-radius: 50%;
+  background: var(--bs-primary-bg-subtle, #cfe2ff);
+  color: var(--bs-primary-text-emphasis, #084298);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+// ── Mini stars (programme group header) ──────────────────────────────
+.mini-star {
+  font-size: 1rem;
+  color: #E5E7EB;
+  line-height: 1;
+
+  &.filled { color: #F59E0B; }
+}
+
+// ── Small stars (table rows) ─────────────────────────────────────────
+.star-sm {
+  font-size: 0.9rem;
+  color: #E5E7EB;
+  line-height: 1;
+
+  &.filled { color: #F59E0B; }
+}
+
+// ── HR KPI stat cards ─────────────────────────────────────────────────
+.stat-card {
+  border-radius: 0.875rem !important;
+  transition: box-shadow 0.18s ease;
+
+  .card-body {
+    padding: 1rem 1.25rem;
+  }
+
+  h3 { font-size: 1.75rem; }
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
+// ── Comment cell (truncate long text in table) ────────────────────────
+.comment-cell {
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

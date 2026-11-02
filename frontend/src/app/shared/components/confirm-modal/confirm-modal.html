@@ -1,0 +1,40 @@
+@if (visible) {
+  <!-- Backdrop -->
+  <div class="modal-backdrop-custom" (click)="onCancel()"></div>
+
+  <!-- Dialog -->
+  <div class="modal-dialog-custom d-flex align-items-center justify-content-center p-3">
+    <div class="bg-white rounded-4 shadow-lg p-4" style="max-width: 420px; width: 100%;">
+
+      <!-- Header: title + X -->
+      <div class="d-flex align-items-center justify-content-center position-relative mb-3">
+        <h6 class="fw-bold mb-0 text-center">{{ title }}</h6>
+        <button class="btn btn-sm btn-light rounded-3 position-absolute end-0 p-1 lh-1"
+                (click)="onCancel()">
+          <i class="bi bi-x-lg small"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <p class="text-muted text-center small mb-4">{{ message }}</p>
+
+      <!-- Buttons — side by side -->
+      <div class="d-flex gap-3 mb-3">
+        <button class="btn btn-outline-secondary flex-grow-1 rounded-3 fw-semibold"
+                (click)="onCancel()">
+          {{ cancelLabel }}
+        </button>
+        <button class="btn btn-danger flex-grow-1 rounded-3 fw-semibold"
+                (click)="onConfirm()">
+          {{ confirmLabel }}
+        </button>
+      </div>
+
+      <!-- Footer note -->
+      <p class="text-center mb-0 text-muted" style="font-size: 0.75rem;">
+        This action is permanent.
+      </p>
+
+    </div>
+  </div>
+}

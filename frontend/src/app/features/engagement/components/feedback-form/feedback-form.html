@@ -1,0 +1,129 @@
+<div class="feedback-form">
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  STEP 1 — Fill in feedback                               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (!confirming()) {
+
+    <!-- ── Star Rating ──────────────────────────────────────── -->
+    <div class="mb-3">
+      <label class="form-label small text-muted mb-1">Rating <span class="text-danger">*</span></label>
+      <div class="star-row" (mouseleave)="clearHover()">
+        @for (s of stars; track s) {
+          <span
+            class="star"
+            [class.active]="isStarActive(s)"
+            (mouseenter)="setHover(s)"
+            (click)="setRating(s)"
+            role="button"
+            [attr.aria-label]="s + ' star'">&#9733;</span>
+        }
+      </div>
+      @if (rating() > 0) {
+        <small class="text-muted">{{ rating() }} / 5</small>
+      }
+    </div>
+
+    <!-- ── Comments ─────────────────────────────────────────── -->
+    <div class="mb-3">
+      <label class="form-label small text-muted mb-1">
+        Comments <span class="text-muted fw-normal">(optional)</span>
+      </label>
+      <textarea
+        class="form-control form-control-sm"
+        rows="3"
+        [ngModel]="comments()"
+        (ngModelChange)="comments.set($event)"
+        placeholder="Share your thoughts about this program…">
+      </textarea>
+    </div>
+
+    <!-- ── Error ────────────────────────────────────────────── -->
+    @if (error()) {
+      <div class="alert alert-danger alert-sm py-1 px-2 small mb-2 rounded-3">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ error() }}
+      </div>
+    }
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="d-flex gap-2">
+      <button
+        class="btn btn-primary btn-sm"
+        (click)="requestConfirm()">
+        {{ isEdit ? 'Update' : 'Submit' }}
+      </button>
+      <button
+        class="btn btn-outline-secondary btn-sm"
+        (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  STEP 2 — Confirmation                                    -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (confirming()) {
+    <div class="confirm-box">
+
+      <!-- Summary of what they're about to submit -->
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="confirm-icon">
+          <i class="bi bi-patch-question-fill text-warning"></i>
+        </span>
+        <div>
+          <p class="fw-semibold mb-0 small">Are you sure you want to submit?</p>
+          <p class="text-muted mb-0" style="font-size:0.75rem;">
+            This feedback will be sent to your coach and cannot be changed later.
+          </p>
+        </div>
+      </div>
+
+      <!-- Rating preview -->
+      <div class="confirm-preview rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="d-flex gap-1">
+            @for (s of stars; track s) {
+              <span class="star-preview" [class.filled]="s <= rating()">&#9733;</span>
+            }
+          </div>
+          <span class="small fw-semibold text-warning-emphasis">{{ rating() }} / 5</span>
+        </div>
+        @if (comments().trim()) {
+          <p class="text-muted small mb-0 fst-italic">"{{ comments().trim() }}"</p>
+        } @else {
+          <p class="text-muted small mb-0 fst-italic">No comments added.</p>
+        }
+      </div>
+
+      <!-- Error from failed POST -->
+      @if (error()) {
+        <div class="alert alert-danger alert-sm py-1 px-2 small mb-2 rounded-3">
+          <i class="bi bi-exclamation-triangle me-1"></i>{{ error() }}
+        </div>
+      }
+
+      <!-- Confirm / Go back buttons -->
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-success btn-sm"
+          (click)="submit()"
+          [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>Submitting…
+          } @else {
+            <i class="bi bi-check2-circle me-1"></i>Yes, submit
+          }
+        </button>
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          (click)="backToForm()"
+          [disabled]="saving()">
+          <i class="bi bi-arrow-left me-1"></i>Go back
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>

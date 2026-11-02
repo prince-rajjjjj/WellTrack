@@ -1,0 +1,29 @@
+.bell-btn {
+  width: 42px;
+  height: 42px;
+  background: #f3f4f6;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e5e7eb;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+  }
+}
+
+.bell-dropdown {
+  min-width: 360px;
+  max-width: 380px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.notif-item {
+  white-space: normal;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child { border-bottom: none; }
+  &:hover      { background: #f0fdf4; }
+}

@@ -1,0 +1,277 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h3 class="fw-bold mb-1">Reports &amp; Analytics</h3>
+      <p class="text-muted mb-0 small">
+        Wellness program insights
+        @if (lastLoaded()) {
+          <span class="ms-2 text-muted" style="font-size:0.7rem;">
+            · Updated {{ lastLoaded() | date:'shortTime' }}
+          </span>
+        }
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm rounded-3" (click)="load()" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm"></span>
+        } @else {
+          <i class="bi bi-arrow-clockwise"></i>
+        }
+      </button>
+      <a routerLink="participation" class="btn btn-outline-success btn-sm rounded-3">
+        <i class="bi bi-people me-1"></i>Participation
+      </a>
+      <a routerLink="engagement" class="btn btn-outline-success btn-sm rounded-3">
+        <i class="bi bi-heart-pulse me-1"></i>Engagement
+      </a>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger rounded-4">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ error() }}
+      <button class="btn btn-sm btn-danger ms-3" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <!-- KPI Cards — show skeleton while loading -->
+  <div class="row g-3 mb-4">
+
+    <!-- Total Programs -->
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted small mb-1 text-uppercase fw-semibold" style="font-size:.7rem;letter-spacing:.5px;">Total Programs</p>
+              @if (loading()) {
+                <div class="placeholder-glow"><span class="placeholder col-4" style="height:2rem;border-radius:4px;"></span></div>
+              } @else {
+                <h3 class="fw-bold mb-0">{{ programs()?.totalPrograms ?? '—' }}</h3>
+                <small class="text-muted">
+                  <span class="text-success">{{ programs()?.activePrograms ?? 0 }} active</span>
+                  · {{ programs()?.completedPrograms ?? 0 }} done
+                </small>
+              }
+            </div>
+            <span class="badge bg-success-subtle text-success p-2 fs-5"><i class="bi bi-calendar-event"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Participants -->
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted small mb-1 text-uppercase fw-semibold" style="font-size:.7rem;letter-spacing:.5px;">Participants</p>
+              @if (loading()) {
+                <div class="placeholder-glow"><span class="placeholder col-4" style="height:2rem;border-radius:4px;"></span></div>
+              } @else {
+                <h3 class="fw-bold mb-0">{{ programs()?.totalParticipants ?? '—' }}</h3>
+                <small class="text-muted">
+                  Avg rate
+                  <span class="text-primary">
+                    {{ programs() ? ((programs()!.averageParticipationRate) | number:'1.1-1') + '%' : '—' }}
+                  </span>
+                </small>
+              }
+            </div>
+            <span class="badge bg-primary-subtle text-primary p-2 fs-5"><i class="bi bi-people"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compliance Rate -->
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted small mb-1 text-uppercase fw-semibold" style="font-size:.7rem;letter-spacing:.5px;">Compliance Rate</p>
+              @if (loading()) {
+                <div class="placeholder-glow"><span class="placeholder col-4" style="height:2rem;border-radius:4px;"></span></div>
+              } @else {
+                <h3 class="fw-bold mb-0">
+                  {{ compliance() ? (complianceRate | number:'1.1-1') + '%' : '—' }}
+                </h3>
+                <small class="text-muted">
+                  {{ compliance()?.completedAudits ?? 0 }}/{{ compliance()?.totalAudits ?? 0 }} audits
+                </small>
+              }
+            </div>
+            <span class="badge bg-warning-subtle text-warning p-2 fs-5"><i class="bi bi-clipboard-check"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avg Engagement -->
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted small mb-1 text-uppercase fw-semibold" style="font-size:.7rem;letter-spacing:.5px;">Avg Engagement</p>
+              @if (loading()) {
+                <div class="placeholder-glow"><span class="placeholder col-4" style="height:2rem;border-radius:4px;"></span></div>
+              } @else {
+                <h3 class="fw-bold mb-0">
+                  {{ engagement() ? (engagement()!.averageEngagementScore | number:'1.1-1') : '—' }}
+                </h3>
+                <small class="text-muted">
+                  <span class="text-success">{{ engagement()?.highlyEngagedEmployees ?? 0 }} high</span>
+                  · <span class="text-danger">{{ engagement()?.lowEngagementEmployees ?? 0 }} low</span>
+                </small>
+              }
+            </div>
+            <span class="badge bg-info-subtle text-info p-2 fs-5"><i class="bi bi-heart-pulse"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compliance + Engagement detail row -->
+  <div class="row g-3 mb-4">
+
+    <!-- Compliance Detail -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="fw-semibold mb-3">
+            <i class="bi bi-clipboard-check text-warning me-2"></i>Compliance Detail
+          </h6>
+          @if (loading()) {
+            <div class="placeholder-glow d-flex flex-column gap-2">
+              <div class="placeholder col-12" style="height:8px;border-radius:4px;"></div>
+              <div class="row g-2 mt-1">
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+              </div>
+            </div>
+          } @else if (!compliance()) {
+            <p class="text-muted small text-center py-3">No compliance data available.</p>
+          } @else {
+            <div class="mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Completion rate</small>
+                <small class="fw-semibold">{{ complianceRate | number:'1.1-1' }}%</small>
+              </div>
+              <div class="progress rounded-pill" style="height:8px;">
+                <div class="progress-bar bg-warning rounded-pill" [style.width.%]="complianceRate"></div>
+              </div>
+            </div>
+            <div class="row g-2 text-center">
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-success-subtle">
+                  <div class="fw-bold text-success fs-5">{{ compliance()!.completedAudits }}</div>
+                  <small class="text-muted">Completed</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-warning-subtle">
+                  <div class="fw-bold text-warning fs-5">{{ compliance()!.pendingAudits }}</div>
+                  <small class="text-muted">Pending</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-danger-subtle">
+                  <div class="fw-bold text-danger fs-5">{{ compliance()!.issuesIdentified }}</div>
+                  <small class="text-muted">Issues</small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Engagement Detail -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="fw-semibold mb-3">
+            <i class="bi bi-chat-dots text-info me-2"></i>Engagement Detail
+          </h6>
+          @if (loading()) {
+            <div class="placeholder-glow d-flex flex-column gap-2">
+              <div class="placeholder col-12" style="height:8px;border-radius:4px;"></div>
+              <div class="row g-2 mt-1">
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+                <div class="col-4"><div class="placeholder col-12 rounded" style="height:60px;"></div></div>
+              </div>
+            </div>
+          } @else if (!engagement()) {
+            <p class="text-muted small text-center py-3">No engagement data available.</p>
+          } @else {
+            <div class="mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Avg Rating</small>
+                <small class="fw-semibold">{{ avgRating | number:'1.1-1' }} / 5</small>
+              </div>
+              <div class="progress rounded-pill" style="height:8px;">
+                <div class="progress-bar bg-info rounded-pill" [style.width.%]="avgRatingPct"></div>
+              </div>
+            </div>
+            <div class="row g-2 text-center">
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-info-subtle">
+                  <div class="fw-bold text-info fs-5">{{ engagement()!.totalFeedbacks }}</div>
+                  <small class="text-muted">Feedbacks</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-success-subtle">
+                  <div class="fw-bold text-success fs-5">{{ engagement()!.highlyEngagedEmployees }}</div>
+                  <small class="text-muted">High Engaged</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="rounded-3 p-2 bg-danger-subtle">
+                  <div class="fw-bold text-danger fs-5">{{ engagement()!.lowEngagementEmployees }}</div>
+                  <small class="text-muted">Low Engaged</small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Distribution -->
+  @if (!loading() && userDist().length > 0) {
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-3"><i class="bi bi-pie-chart text-success me-2"></i>User Distribution</h6>
+        <div class="d-flex flex-column gap-2">
+          @for (item of userDist(); track item.role) {
+            <div class="d-flex align-items-center gap-3">
+              <span class="badge text-center" style="min-width:140px;" [ngClass]="roleBadge(item.role)">
+                {{ item.role }}
+              </span>
+              <div class="flex-grow-1">
+                <div class="progress rounded-pill" style="height:10px;">
+                  <div class="progress-bar rounded-pill" [ngClass]="roleClass(item.role)" [style.width.%]="item.percentage"></div>
+                </div>
+              </div>
+              <small class="text-muted" style="min-width:80px;text-align:right;">
+                {{ item.count }} ({{ item.percentage | number:'1.1-1' }}%)
+              </small>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,212 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">
+        <i class="bi bi-heart-pulse-fill text-success me-2"></i>Wellness Programs
+      </h3>
+      <p class="text-muted mb-0">{{ totalCount() }} program(s) found</p>
+    </div>
+    @if (isAdmin) {
+      <button class="btn btn-success px-4 fw-semibold" (click)="openCreate()">
+        <i class="bi bi-plus-lg me-2"></i>New Program
+      </button>
+    }
+  </div>
+
+  <!-- Filters -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-0"
+                   placeholder="Search programs..."
+                   [ngModel]="searchTerm()"
+                   (ngModelChange)="searchTerm.set($event)" />
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select"
+                  [ngModel]="statusFilter()"
+                  (ngModelChange)="statusFilter.set($event)">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="inactive">Inactive</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="fetchPage(page())" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              <i class="bi bi-arrow-clockwise"></i>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading skeleton -->
+  @if (loading()) {
+    <div class="row g-4">
+      @for (_ of [1,2,3,4,5,6]; track $index) {
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card border-0 shadow-sm p-4" style="border-radius:1rem;">
+            <div class="placeholder-glow">
+              <div class="placeholder col-6 mb-2" style="height:20px;border-radius:6px;"></div>
+              <div class="placeholder col-10 mb-1" style="height:14px;border-radius:4px;"></div>
+              <div class="placeholder col-8 mb-3"  style="height:14px;border-radius:4px;"></div>
+              <div class="placeholder col-5"        style="height:12px;border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Program Cards Grid -->
+  @if (!loading()) {
+    @if (totalCount() > 0) {
+      <div class="row g-4">
+        @for (program of pagedPrograms(); track program.id) {
+          <div class="col-12 col-md-6 col-lg-4 program-tile" (click)="goToActivities(program)" role="button">
+            <app-program-card
+              [program]="program"
+              [isAdmin]="isAdmin"
+              [issueCount]="issuesPerProgram()[program.id] ?? 0"
+              (edit)="openEdit($event)"
+              (delete)="confirmDelete($event)"
+              (issueClick)="viewIssues(program.id)">
+            </app-program-card>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          @for (p of pageNumbers(); track p) {
+            <button class="btn btn-sm rounded-3"
+                    [class]="p === page() ? 'btn-primary' : 'btn-outline-secondary'"
+                    (click)="goToPage(p)">{{ p }}</button>
+          }
+          <button class="btn btn-sm btn-outline-secondary rounded-3"
+                  [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <span class="text-muted small ms-2">{{ page() }} / {{ totalPages() }}</span>
+        </div>
+      }
+    } @else {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+        <p class="mb-0 fw-medium">No programs found</p>
+        <small>Try adjusting your filters{{ isAdmin ? ' or create a new program' : '' }}.</small>
+      </div>
+    }
+  }
+
+  <!-- Compliance issues panel (HR) -->
+  @if (selectedProgramId() && openIssues().length > 0) {
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+      <div class="card-header bg-danger-subtle border-0 rounded-top-4 d-flex align-items-center justify-content-between px-4 py-3">
+        <div>
+          <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+          <span class="fw-semibold text-danger">Open Compliance Issues</span>
+          <span class="ms-2 text-muted small">— {{ openIssues().length }} issue(s) for this program</span>
+        </div>
+        <button class="btn-close btn-sm" (click)="selectedProgramId.set(null)"></button>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4 small fw-semibold">Issue</th>
+              <th class="small fw-semibold">Activity</th>
+              <th class="small fw-semibold">Policy</th>
+              <th class="small fw-semibold">Severity</th>
+              <th class="small fw-semibold">Status</th>
+              <th class="small fw-semibold pe-4">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of openIssues(); track r.id) {
+              <tr>
+                <td class="ps-4">
+                  <p class="mb-0 fw-medium small">{{ r.issueType }}</p>
+                  <p class="mb-0 text-muted" style="font-size:0.7rem;">{{ r.notes }}</p>
+                </td>
+                <td class="text-muted small">{{ r.activityName || '—' }}</td>
+                <td class="text-muted small">{{ r.policyName || '—' }}</td>
+                <td>
+                  <span class="badge rounded-pill px-2 bg-{{ severityColor(r.severity) }}-subtle text-{{ severityColor(r.severity) }}">
+                    {{ r.severity }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge rounded-pill px-2"
+                        [class]="r.status === 'Reported' ? 'bg-warning-subtle text-warning' : 'bg-primary-subtle text-primary'">
+                    {{ r.status }}
+                  </span>
+                </td>
+                <td class="pe-4">
+                  <button class="btn btn-sm btn-outline-success rounded-3 px-3"
+                          (click)="resolveIssue(r.id, r.status)">
+                    Resolve
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (selectedProgramId() && openIssues().length === 0) {
+    <div class="alert border-0 rounded-4 bg-success-subtle text-success mt-4 d-flex align-items-center gap-3 py-3 px-4">
+      <i class="bi bi-check-circle-fill fs-5"></i>
+      <span class="small">No open compliance issues for this program.</span>
+      <button class="btn-close ms-auto btn-sm" (click)="selectedProgramId.set(null)"></button>
+    </div>
+  }
+
+</div>
+
+<!-- Program Form Modal -->
+@if (showFormModal()) {
+  <app-program-form-modal
+    [program]="selectedProgram() ?? undefined"
+    (closed)="onFormClosed($event)">
+  </app-program-form-modal>
+}
+
+<style>
+.program-tile { cursor: pointer; transition: transform .15s; }
+.program-tile:hover { transform: translateY(-2px); }
+</style>
+
+<!-- Confirm Delete Dialog -->
+<app-confirm-modal
+  [visible]="showConfirm()"
+  title="Delete Program"
+  message="Are you sure you want to permanently delete this program? This cannot be undone."
+  confirmLabel="Delete"
+  confirmClass="btn-danger"
+  (confirmed)="onConfirmed()"
+  (cancelled)="showConfirm.set(false)">
+</app-confirm-modal>
+ 

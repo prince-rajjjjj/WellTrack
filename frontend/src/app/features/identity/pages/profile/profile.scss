@@ -1,0 +1,134 @@
+.nav-tabs {
+  border-bottom: 2px solid #e5e7eb;
+
+  .nav-link {
+    border: none;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+
+    &:hover {
+      color: #16a34a;
+      background: transparent;
+    }
+
+    &.active {
+      color: #16a34a;
+      border-bottom-color: #16a34a;
+      background: transparent;
+    }
+  }
+}
+
+// ── Input fields ──────────────────────────────────────────────
+.form-control-lg {
+  border-radius: 10px !important;
+  border: 1.5px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  background: white;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+    outline: none;
+  }
+
+  &.is-invalid {
+    border-color: #dc2626;
+
+    &:focus {
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+  }
+
+  &:read-only {
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+  }
+}
+
+// ── Input groups ──────────────────────────────────────────────
+.input-group {
+  .form-control-lg {
+    border-right: none !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+
+    &:focus {
+      z-index: 1;
+    }
+  }
+
+  .btn-outline-secondary {
+    border: 1.5px solid #e5e7eb;
+    border-left: none;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    color: #9ca3af;
+    background: white;
+    padding: 0 1rem;
+
+    &:hover {
+      background: #f9fafb;
+      color: #16a34a;
+    }
+  }
+
+  .input-group-text {
+    border-radius: 10px 0 0 10px;
+    border: 1.5px solid #e5e7eb;
+    border-right: none;
+    color: #374151;
+  }
+
+  // Phone +91 prefix — input on the right
+  .input-group-text + .form-control-lg {
+    border-radius: 0 10px 10px 0 !important;
+    border-left: none !important;
+  }
+}
+
+// ── Labels ────────────────────────────────────────────────────
+.form-label {
+  color: #374151;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+// ── Password requirements checklist ───────────────────────────
+.password-checklist {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.password-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.password-checklist li i {
+  font-size: 1rem;
+  color: #d1d5db;
+  transition: color 0.2s;
+}
+
+.password-checklist li.met {
+  color: #16a34a;
+}
+
+.password-checklist li.met i {
+  color: #16a34a;
+}

@@ -1,0 +1,140 @@
+<div class="d-flex flex-column gap-4">
+
+  <!-- Hero -->
+  <div class="wt-hero d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h1 class="wt-hero-title">HR Dashboard</h1>
+      <p class="wt-hero-subtitle mb-2">Resolve compliance issues & monitor program engagement.</p>
+      <span class="wt-hero-pill">HR</span>
+    </div>
+    <div class="text-end">
+      <div class="wt-hero-date">{{ today | date:'EEEE' }}</div>
+      <div class="fw-semibold">{{ today | date:'MMMM d, y' }}</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <section>
+    <div class="wt-section-label">Key Metrics</div>
+    @if (complianceSvc.recordsLoading() && complianceSvc.records().length === 0) {
+      <wt-skeleton variant="stat-card" [count]="4"></wt-skeleton>
+    } @else {
+      <div class="row g-3">
+        @for (s of stats(); track s.label) {
+          <div class="col-6 col-md-3">
+            <a [routerLink]="s.route" class="wt-stat-card">
+              <div class="d-flex align-items-center gap-3">
+                <div class="wt-stat-icon" [ngClass]="'bg-' + s.tone + '-subtle text-' + s.tone">
+                  <i class="bi {{ s.icon }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="wt-stat-label">{{ s.label }}</p>
+                  <p class="wt-stat-value">{{ s.value }}</p>
+                </div>
+              </div>
+              <p class="wt-stat-sub mb-0">{{ s.sub }}</p>
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Open issues -->
+  @if (complianceSvc.recordsLoading() && complianceSvc.records().length === 0) {
+    <div class="wt-panel p-4">
+      <wt-skeleton variant="row" [count]="3"></wt-skeleton>
+    </div>
+  } @else if (openIssues().length > 0) {
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="wt-section-label mb-0 text-danger">Issues Needing Your Attention</div>
+        <a routerLink="/compliance/records" class="btn btn-sm btn-link text-danger text-decoration-none p-0">
+          View all <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="wt-panel p-3">
+        <div class="d-flex flex-column gap-2">
+          @for (r of openIssues(); track r.id) {
+            <div class="wt-severity-row" [attr.data-sev]="r.severity">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <div class="fw-semibold small">{{ r.issueType }}</div>
+                <div class="d-flex gap-2 align-items-center">
+                  <span class="badge rounded-pill px-2"
+                        [ngClass]="'bg-' + severityColor(r.severity) + '-subtle text-' + severityColor(r.severity)">
+                    {{ r.severity }}
+                  </span>
+                  <span class="badge bg-light text-dark rounded-pill px-2">{{ r.status }}</span>
+                </div>
+              </div>
+              <div class="text-muted small">{{ r.programName || 'General' }} · {{ r.policyName }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  } @else {
+    <div class="wt-panel p-3 d-flex align-items-center gap-3" style="border-left: 4px solid #16a34a;">
+      <div class="wt-stat-icon bg-success-subtle text-success">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <p class="mb-0 fw-semibold">No open compliance issues</p>
+        <p class="mb-0 text-muted small">All programs are clear right now.</p>
+      </div>
+    </div>
+  }
+
+  <!-- Recently resolved -->
+  @if (recentlyResolved().length > 0) {
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="wt-section-label mb-0 text-success">Recently Resolved By You</div>
+        <a routerLink="/compliance/records" class="btn btn-sm btn-link text-success text-decoration-none p-0">
+          View all <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="wt-panel p-3">
+        <div class="d-flex flex-column gap-2">
+          @for (r of recentlyResolved(); track r.id) {
+            <div class="wt-severity-row" [attr.data-sev]="r.severity">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <div class="fw-semibold small">{{ r.issueType }}</div>
+                <span class="text-muted small">{{ (r.updatedAt || r.createdAt) | date:'MMM d' }}</span>
+              </div>
+              <div class="text-muted small">{{ r.programName || 'General' }} · {{ r.policyName }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Quick actions -->
+  <section>
+    <div class="wt-section-label">Quick Actions</div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <a routerLink="/compliance/records" class="wt-quick-card">
+          <i class="bi bi-clipboard-check text-success wt-quick-icon"></i>
+          <p class="wt-quick-title">Resolve Issues</p>
+          <p class="wt-quick-sub mb-0">Open compliance cases</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/wellness/programs" class="wt-quick-card">
+          <i class="bi bi-calendar-event text-primary wt-quick-icon"></i>
+          <p class="wt-quick-title">Programs</p>
+          <p class="wt-quick-sub mb-0">Manage wellness programs</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a routerLink="/reporting" class="wt-quick-card">
+          <i class="bi bi-graph-up text-info wt-quick-icon"></i>
+          <p class="wt-quick-title">Reports</p>
+          <p class="wt-quick-sub mb-0">Engagement insights</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

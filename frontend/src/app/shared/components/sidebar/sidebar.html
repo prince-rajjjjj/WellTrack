@@ -1,0 +1,33 @@
+<aside class="sidebar">
+
+  <!-- Logo header -->
+  <div class="sidebar-brand">
+    <i class="bi bi-heart-pulse-fill text-success fs-3"></i>
+    <span class="brand-text">WellTrack</span>
+  </div>
+
+  <!-- Navigation sections -->
+  <nav class="sidebar-nav">
+    @for (section of sections(); track section.title) {
+      <div class="nav-section">
+        <div class="section-title">{{ section.title }}</div>
+
+       @for (link of section.links; track link.route) {
+        <a class="nav-link"
+          [routerLink]="link.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }">
+          <i class="bi" [ngClass]="link.icon"></i>
+          <span>{{ link.label }}</span>
+        </a>
+      }
+      </div>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <small class="text-muted">WellTrack v1.0</small>
+  </div>
+
+</aside>

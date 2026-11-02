@@ -1,0 +1,249 @@
+// WellTrack date picker — emerald accents, soft card shadow.
+@use 'sass:color';
+
+$dp-primary:        #10b981;   // emerald-500
+$dp-primary-dark:   #059669;   // emerald-600
+$dp-primary-soft:   #d1fae5;   // emerald-100
+$dp-text:           #111827;
+$dp-muted:          #6b7280;
+$dp-border:         #e5e7eb;
+$dp-bg:             #ffffff;
+
+.dp-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Trigger field ───────────────────────────────────────── */
+.dp-input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: $dp-bg;
+  border: 1px solid $dp-border;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: border-color .12s, box-shadow .12s;
+  text-align: left;
+  color: $dp-text;
+  font-size: .95rem;
+
+  &:hover  { border-color: color.adjust($dp-border, $lightness: -10%); }
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-color: $dp-primary;
+    box-shadow: 0 0 0 4px rgba($dp-primary, .18);
+  }
+
+  &.dp-invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(#ef4444, .12);
+  }
+  &.dp-disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+    color: $dp-muted;
+  }
+}
+.dp-icon     { color: $dp-primary; font-size: 1.05rem; }
+.dp-text     { flex: 1; }
+.dp-placeholder { color: $dp-muted; }
+.dp-chevron  { color: $dp-muted; transition: transform .15s; }
+.dp-chevron.up { transform: rotate(180deg); }
+
+/* ── Popover ──────────────────────────────────────────────
+ * position: absolute anchors the popover to the .dp-wrapper
+ * (which is position: relative). Percentages here resolve
+ * against the wrapper, so calc(100% + 6px) means "6px below
+ * the trigger" — the natural dropdown behavior.
+ *
+ * NOTE: do NOT use position: fixed here. With fixed, the
+ * containing block is the viewport, so calc(100%) becomes
+ * 100vh and the popover lands off-screen when flipping up.
+ * If a parent has overflow:hidden, fix that on the parent
+ * instead — usually a modal's overflow:auto is fine because
+ * it scrolls (doesn't clip).
+ */
+.dp-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 9999;
+  animation: dp-pop .14s ease-out;
+
+  // Flip up when there isn't room below.
+  &.dp-up {
+    top: auto;
+    bottom: calc(100% + 6px);
+    animation: dp-pop-up .14s ease-out;
+  }
+}
+
+.dp-card {
+  width: 320px;
+  background: $dp-bg;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.05);
+  padding: 1rem 1.1rem 0.9rem;
+  border: 1px solid $dp-border;
+}
+
+/* ── Header (title + day chip on right) ──────────────────── */
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+.dp-title    { font-weight: 700; font-size: 1.05rem; color: $dp-text; }
+.dp-subtitle { font-size: .8rem; color: $dp-muted; }
+
+.dp-day-chip {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $dp-primary, $dp-primary-dark);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1.15rem;
+  box-shadow: 0 4px 10px rgba($dp-primary, .35);
+}
+.dp-day-chip-num { line-height: 1; }
+
+/* ── Month navigator ─────────────────────────────────────── */
+.dp-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.dp-nav-label { font-weight: 600; color: $dp-text; font-size: .92rem; }
+.dp-nav-btn {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: $dp-muted;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+
+  &:hover { background: $dp-primary-soft; color: $dp-primary-dark; }
+}
+
+/* ── Weekday row ─────────────────────────────────────────── */
+.dp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: .72rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: $dp-muted;
+  letter-spacing: .04em;
+  margin-bottom: 0.2rem;
+}
+.dp-weekday { padding: 0.3rem 0; }
+
+/* ── Day grid ────────────────────────────────────────────── */
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.dp-day {
+  aspect-ratio: 1 / 1;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  font-size: .85rem;
+  font-weight: 500;
+  color: $dp-text;
+  cursor: pointer;
+  transition: background .12s, color .12s, transform .08s;
+  display: flex; align-items: center; justify-content: center;
+
+  &:hover:not(:disabled):not(.selected) {
+    background: $dp-primary-soft;
+    color: $dp-primary-dark;
+  }
+  &.out       { color: #d1d5db; }
+  &.today     { font-weight: 700; color: $dp-primary-dark; }
+  &.selected  {
+    background: linear-gradient(135deg, $dp-primary, $dp-primary-dark);
+    color: white;
+    box-shadow: 0 4px 12px rgba($dp-primary, .35);
+  }
+  &:disabled  { color: #d1d5db; cursor: not-allowed; }
+  &.today.selected { color: white; }
+}
+
+/* ── Time row ────────────────────────────────────────────── */
+.dp-time {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 0;
+  margin-top: 0.3rem;
+  border-top: 1px solid $dp-border;
+  color: $dp-muted;
+
+  i { font-size: .95rem; }
+  input {
+    width: 56px;
+    border: 1px solid $dp-border;
+    border-radius: 8px;
+    padding: 0.3rem 0.4rem;
+    text-align: center;
+    font-size: .9rem;
+    color: $dp-text;
+    -moz-appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    &:focus { outline: none; border-color: $dp-primary; box-shadow: 0 0 0 3px rgba($dp-primary, .15); }
+  }
+}
+.dp-time-sep { font-weight: 700; color: $dp-text; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.dp-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 0.7rem;
+  border-top: 1px solid $dp-border;
+}
+.dp-footer-right { display: flex; gap: 0.4rem; }
+
+.dp-link {
+  background: transparent; border: 0;
+  color: $dp-muted;
+  font-size: .85rem;
+  cursor: pointer;
+  &:hover { color: $dp-primary-dark; }
+}
+.dp-ghost {
+  background: transparent; border: 1px solid $dp-border;
+  color: $dp-text;
+  font-size: .85rem; font-weight: 500;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10px;
+  cursor: pointer;
+  &:hover { background: $dp-primary-soft; border-color: $dp-primary; color: $dp-primary-dark; }
+}
+.dp-confirm {
+  background: linear-gradient(135deg, $dp-primary, $dp-primary-dark);
+  color: white;
+  font-size: .85rem; font-weight: 600;
+  padding: 0.4rem 1rem;
+  border: 0; border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba($dp-primary, .3);
+  display: inline-flex; align-items: center;
+  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+}
+
+@keyframes dp-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes dp-pop-up {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}

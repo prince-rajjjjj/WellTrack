@@ -1,0 +1,224 @@
+<div class="container-fluid py-4">
+
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a routerLink="/reporting" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a routerLink="/reporting" class="text-success text-decoration-none">Reports</a>
+          </li>
+          <li class="breadcrumb-item active">Engagement Scores</li>
+        </ol>
+      </nav>
+    </div>
+    <h3 class="fw-bold mb-0">Engagement Score Report</h3>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ error() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success"></div>
+      <p class="text-muted mt-2">Loading…</p>
+    </div>
+  }
+
+  @if (!loading() && !error() && report()) {
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-graph-up fs-3 text-info mb-2 d-block"></i>
+            <h3 class="fw-bold mb-0">{{ report()!.averageScore | number:'1.1-1' }}</h3>
+            <small class="text-muted text-uppercase fw-semibold"
+                   style="font-size:.7rem;letter-spacing:.5px;">Avg Score</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-emoji-smile fs-3 text-success mb-2 d-block"></i>
+            <h3 class="fw-bold mb-0">{{ report()!.highlyEngaged }}</h3>
+            <small class="text-muted text-uppercase fw-semibold"
+                   style="font-size:.7rem;letter-spacing:.5px;">Highly Engaged</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-emoji-neutral fs-3 text-warning mb-2 d-block"></i>
+            <h3 class="fw-bold mb-0">{{ report()!.moderatelyEngaged }}</h3>
+            <small class="text-muted text-uppercase fw-semibold"
+                   style="font-size:.7rem;letter-spacing:.5px;">Moderate</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-emoji-frown fs-3 text-danger mb-2 d-block"></i>
+            <h3 class="fw-bold mb-0">{{ report()!.lowEngaged }}</h3>
+            <small class="text-muted text-uppercase fw-semibold"
+                   style="font-size:.7rem;letter-spacing:.5px;">Low Engaged</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distribution + Monthly Trend -->
+    <div class="row g-3 mb-4">
+
+      <!-- Distribution -->
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+              <i class="bi bi-bar-chart text-info me-2"></i>Distribution
+            </h6>
+            <div class="d-flex flex-column gap-3">
+              <div>
+                <div class="d-flex justify-content-between mb-1">
+                  <small class="fw-semibold text-success">High (≥7)</small>
+                  <small class="text-muted">{{ report()!.highlyEngaged }}</small>
+                </div>
+                <div class="progress" style="height:10px;border-radius:6px;">
+                  <div class="progress-bar bg-success" [style.width.%]="highPct()"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between mb-1">
+                  <small class="fw-semibold text-warning">Moderate (4–6)</small>
+                  <small class="text-muted">{{ report()!.moderatelyEngaged }}</small>
+                </div>
+                <div class="progress" style="height:10px;border-radius:6px;">
+                  <div class="progress-bar bg-warning" [style.width.%]="medPct()"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between mb-1">
+                  <small class="fw-semibold text-danger">Low (&lt;4)</small>
+                  <small class="text-muted">{{ report()!.lowEngaged }}</small>
+                </div>
+                <div class="progress" style="height:10px;border-radius:6px;">
+                  <div class="progress-bar bg-danger" [style.width.%]="lowPct()"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Trend — now checks trend.length, not topEmployees -->
+      <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+              <i class="bi bi-calendar3 text-success me-2"></i>Monthly Trend
+            </h6>
+
+            @if (report()?.trend?.length) {
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Period</th>
+                      <th>Avg Score</th>
+                      <th>Active Users</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (t of report()!.trend; track t.label) {
+                      <tr>
+                        <td class="fw-semibold">{{ t.label }}</td>
+                        <td>
+                          <span class="badge px-2 py-1" [ngClass]="scoreBadge(t.score)">
+                            {{ t.score | number:'1.1-1' }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge bg-primary-subtle text-primary">
+                            {{ t.activeUsers }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="text-center py-4 text-muted">
+                <i class="bi bi-bar-chart fs-2 d-block mb-2 opacity-50"></i>
+                <small>No trend data available yet</small>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Employees -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-3">
+          <i class="bi bi-star text-warning me-2"></i>Top Employees
+        </h6>
+
+        @if (report()?.topEmployees?.length) {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Employee</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (emp of report()!.topEmployees; track emp.name; let i = $index) {
+                  <tr>
+                    <td><span class="fw-bold text-muted">{{ i + 1 }}</span></td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                             style="width:34px;height:34px;font-size:.85rem;
+                                    background:linear-gradient(135deg,#16a34a,#15803d);">
+                          {{ emp.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <span class="fw-semibold">{{ emp.name }}</span>
+                      </div>
+                    </td>
+                    <td style="min-width:180px;">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height:6px;">
+                          <div class="progress-bar bg-success" [style.width.%]="emp.score * 10"></div>
+                        </div>
+                        <small class="fw-semibold">{{ emp.score | number:'1.1-1' }}</small>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-people fs-2 d-block mb-2 opacity-50"></i>
+            <small>No employee data available yet</small>
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+</div>

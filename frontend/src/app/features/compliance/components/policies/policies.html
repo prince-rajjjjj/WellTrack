@@ -1,0 +1,148 @@
+<div>
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">Policies</h4>
+      <p class="text-muted small mb-0">{{ totalCount() }} {{ totalCount() === 1 ? 'policy' : 'policies' }}</p>
+    </div>
+    @if (canEdit) {
+      <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="openForm()">
+        <i class="bi bi-plus-lg me-1"></i> New Policy
+      </button>
+    }
+  </div>
+
+  <!-- Inline create form (Admin only) -->
+  @if (showForm() && canEdit) {
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <h6 class="fw-semibold mb-3">New Policy</h6>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-medium">Policy Name <span class="text-danger">*</span></label>
+          <input class="form-control form-control-sm rounded-3" [(ngModel)]="form.policyName"
+                 placeholder="e.g. Remote Work Safety">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-medium">Category</label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.category">
+            @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-medium">Severity</label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.severity">
+            @for (s of severities; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-medium">Description</label>
+          <textarea class="form-control form-control-sm rounded-3" rows="2"
+                    [(ngModel)]="form.description" placeholder="Brief description…"></textarea>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="submit()"
+                [disabled]="svc.policiesLoading()">
+          @if (svc.policiesLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Save
+        </button>
+        <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="closeForm()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (svc.policiesLoading() && svc.policies().length === 0) {
+    <div class="card border-0 shadow-sm rounded-4 p-3">
+      <wt-skeleton variant="row" [count]="5"></wt-skeleton>
+    </div>
+  } @else if (svc.policies().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-file-earmark-text fs-2 d-block mb-2"></i>
+      No policies yet. Click <strong>New Policy</strong> to add one.
+    </div>
+  } @else {
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4 small fw-semibold">Policy Name</th>
+            <th class="small fw-semibold">Category</th>
+            <th class="small fw-semibold">Severity</th>
+            <th class="small fw-semibold">Status</th>
+            <th class="small fw-semibold">Created</th>
+            @if (canEdit) {
+              <th class="small fw-semibold pe-4">Action</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of pagedPolicies(); track p.id) {
+            <tr>
+              <td class="ps-4">
+                <p class="mb-0 fw-medium small">{{ p.policyName }}</p>
+                <p class="mb-0 text-muted" style="font-size:0.7rem;">{{ p.description }}</p>
+              </td>
+              <td><span class="badge bg-secondary-subtle text-secondary rounded-pill px-2">{{ p.category }}</span></td>
+              <td>
+                <span class="badge rounded-pill px-2 bg-{{ severityColor(p.severity) }}-subtle text-{{ severityColor(p.severity) }}">
+                  {{ p.severity }}
+                </span>
+              </td>
+              <td>
+                <span class="badge rounded-pill px-2"
+                      [class]="p.status === 'Active' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
+                  {{ p.status }}
+                </span>
+              </td>
+              <td class="text-muted small">{{ p.createdDate | date:'mediumDate' }}</td>
+              @if (canEdit) {
+                <td class="pe-4">
+                  <button class="btn btn-sm btn-outline-danger rounded-3"
+                          title="Delete policy"
+                          (click)="askDelete(p.id, p.policyName)">
+                    <i class="bi bi-trash me-1"></i>Delete
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of pageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === page() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ page() }} / {{ totalPages() }}</span>
+      </div>
+    }
+  }
+
+  <!-- Delete confirmation — reusable component, Facebook-style "are you sure?" -->
+  <app-confirm-dialog
+    [open]="deletingId() !== null"
+    title="Delete Policy"
+    [message]="'Are you sure you want to permanently delete ' + deletingName + '? This action cannot be undone.'"
+    confirmLabel="Delete"
+    cancelLabel="Cancel"
+    tone="danger"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()">
+  </app-confirm-dialog>
+
+</div>

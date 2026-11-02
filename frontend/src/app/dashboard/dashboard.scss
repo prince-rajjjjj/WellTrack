@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.action-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+/* Soft tint utility (used in template as bg-primary-soft) */
+.bg-primary-soft {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* ── "Closed the loop" feed (CO + HR dashboards) ──────────────────────
+   Each resolved row gets a thin colored left border driven by the severity
+   data-attribute. Stays in vanilla Bootstrap palette — no gradients. */
+.loop-closed-card {
+  background: #f6fdf9; /* very subtle green tint to set the section apart */
+}
+
+.resolved-row {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-left-width: 4px;
+  border-left-color: #9ca3af; /* default = grey */
+
+  &[data-sev="Low"]      { border-left-color: #16a34a; } /* green */
+  &[data-sev="Medium"]   { border-left-color: #f59e0b; } /* amber */
+  &[data-sev="High"]     { border-left-color: #ef4444; } /* red   */
+  &[data-sev="Critical"] { border-left-color: #7f1d1d; } /* dark red */
+}
+
+.resolution-block {
+  background: #f0fdf4; /* light green */
+  border-radius: 8px;
+  padding: 8px 10px;
+}

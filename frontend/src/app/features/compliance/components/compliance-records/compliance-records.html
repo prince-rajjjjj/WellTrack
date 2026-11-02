@@ -1,0 +1,337 @@
+<div>
+
+  <!-- Header — title, subtitle and primary action vary by role -->
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">{{ pageTitle }}</h4>
+      <p class="text-muted small mb-0">{{ pageSubtitle }}</p>
+    </div>
+    @if (canReport) {
+      <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="openForm()">
+        <i class="bi bi-plus-lg me-1"></i> Report Issue
+      </button>
+    }
+    @if (isAdmin) {
+      <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2 fw-semibold"
+            style="font-size:0.72rem;">
+        <i class="bi bi-eye me-1"></i>VIEW ONLY
+      </span>
+    }
+  </div>
+
+  <!-- Role-intent banner — explains what THIS user does here -->
+  @if (bannerHeadline) {
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+      <div class="px-4 py-3 d-flex align-items-center gap-3"
+           [style.background]="bannerStyle.bg">
+        <i class="bi {{ bannerStyle.icon }} {{ bannerStyle.tone }} fs-4"></i>
+        <div>
+          <p class="mb-0 fw-bold small {{ bannerStyle.tone }}">{{ bannerHeadline }}</p>
+          <p class="mb-0 text-muted" style="font-size:0.72rem;">{{ bannerDescription }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Inline create form (Compliance Officer only) -->
+  @if (showForm() && canReport) {
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <h6 class="fw-semibold mb-3">Report a Compliance Issue</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-medium">Issue Type <span class="text-danger">*</span></label>
+          <input class="form-control form-control-sm rounded-3" [(ngModel)]="form.issueType"
+                 placeholder="e.g. Safety Violation">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-medium">Severity</label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.severity">
+            @for (s of severities; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-medium">Program <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.programId"
+                  (ngModelChange)="onProgramChange($event)">
+            <option value="" disabled>Select a program…</option>
+            @for (p of selectablePrograms; track p.id) {
+              <option [value]="p.id">{{ p.title }}</option>
+            }
+            @if (selectablePrograms.length === 0) {
+              <option value="" disabled>— No active programs —</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-medium">Activity</label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.activityId"
+                  [disabled]="!form.programId">
+            <option [value]="null">— None / General —</option>
+            @for (a of programActivities; track a.id) {
+              <option [value]="a.id">{{ a.title }}</option>
+            }
+          </select>
+          @if (form.programId && programActivities.length === 0) {
+            <small class="text-muted" style="font-size:0.7rem;">No active activities under this program.</small>
+          }
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-medium">Policy <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm rounded-3" [(ngModel)]="form.policyId">
+            <option value="" disabled>Select a policy…</option>
+            @for (p of selectablePolicies; track p.id) {
+              <option [value]="p.id">{{ p.policyName }}</option>
+            }
+            @if (selectablePolicies.length === 0) {
+              <option value="" disabled>— No active policies —</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-medium">Notes</label>
+          <input class="form-control form-control-sm rounded-3" [(ngModel)]="form.notes"
+                 placeholder="Brief description of the issue">
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary btn-sm rounded-3 px-3" (click)="submit()"
+                [disabled]="svc.recordsLoading()">
+          @if (svc.recordsLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Submit
+        </button>
+        <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="closeForm()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Filter tabs -->
+  <div class="d-flex gap-2 flex-wrap mb-3">
+    @for (tab of statusTabs; track tab) {
+      <button class="btn btn-sm rounded-pill px-3"
+              [class]="filterStatus() === tab ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setFilter(tab)">
+        {{ tab }}
+      </button>
+    }
+  </div>
+
+  <!-- Table -->
+  @if (svc.recordsLoading() && svc.records().length === 0) {
+    <div class="card border-0 shadow-sm rounded-4 p-3">
+      <wt-skeleton variant="row" [count]="6"></wt-skeleton>
+    </div>
+  } @else if (totalCount() === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-clipboard-x fs-2 d-block mb-2"></i>
+      No records found for <strong>{{ filterStatus() }}</strong>.
+    </div>
+  } @else {
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4 small fw-semibold">Issue</th>
+            <th class="small fw-semibold">Program</th>
+            <th class="small fw-semibold">Policy</th>
+            <th class="small fw-semibold">Severity</th>
+            <th class="small fw-semibold">Status</th>
+            <th class="small fw-semibold pe-4">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of pagedRecords(); track r.id) {
+            <tr>
+              <td class="ps-4">
+                <p class="mb-0 fw-medium small">{{ r.issueType }}</p>
+                <p class="mb-0 text-muted" style="font-size:0.7rem;">{{ r.notes }}</p>
+              </td>
+              <td class="text-muted small">{{ r.programName || r.programId }}</td>
+              <td class="text-muted small">{{ r.policyName || '—' }}</td>
+              <td>
+                <span class="badge rounded-pill px-2 bg-{{ severityColor(r.severity) }}-subtle text-{{ severityColor(r.severity) }}">
+                  {{ r.severity }}
+                </span>
+              </td>
+              <td>
+                <span class="badge rounded-pill px-2 bg-{{ statusColor(r.status) }}-subtle text-{{ statusColor(r.status) }}">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td class="pe-4">
+                <div class="d-flex gap-2 flex-wrap">
+                  <!-- View Details — labeled so the action is self-evident.
+                       Available to every role (Admin oversight, CO reporter, HR resolver). -->
+                  <button class="btn btn-outline-secondary btn-sm rounded-3 px-3"
+                          (click)="openDetails(r)">
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </button>
+
+                  <!-- Workflow button — HR only -->
+                  @if (canResolve && nextStepLabel(r.status)) {
+                    <button class="btn btn-sm rounded-3 px-3"
+                            [class]="r.status === 'Reported' ? 'btn-outline-primary' : 'btn-success'"
+                            (click)="nextStep(r)">
+                      @if (r.status === 'Reported') {
+                        <i class="bi bi-play-circle me-1"></i>Start Investigation
+                      } @else {
+                        <i class="bi bi-check2-circle me-1"></i>Resolve
+                      }
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of pageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === page() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ page() }} / {{ totalPages() }}</span>
+      </div>
+    }
+  }
+
+  <!-- ── HR resolve modal — capture how the issue was fixed ───────────── -->
+  @if (resolvingRecord(); as r) {
+    <div class="modal-backdrop-custom" (click)="cancelResolve()">
+      <div class="card border-0 shadow-lg rounded-4 p-4"
+           style="max-width:540px; width:92%;"
+           (click)="$event.stopPropagation()">
+
+        <h6 class="fw-bold mb-1">
+          <i class="bi bi-clipboard-check text-success me-2"></i>Resolve Issue
+        </h6>
+        <p class="text-muted small mb-3">
+          Closing
+          <strong class="text-dark">{{ r.issueType }}</strong>
+          — please describe how it was resolved. This is preserved on the record for audit history.
+        </p>
+
+        <!-- Mini context strip -->
+        <div class="bg-light rounded-3 p-3 mb-3 small">
+          <div class="row g-1">
+            <div class="col-4 text-muted">Program</div>
+            <div class="col-8">{{ r.programName || '—' }}</div>
+            <div class="col-4 text-muted">Policy</div>
+            <div class="col-8">{{ r.policyName }}</div>
+            <div class="col-4 text-muted">Severity</div>
+            <div class="col-8">
+              <span class="badge rounded-pill px-2 bg-{{ severityColor(r.severity) }}-subtle text-{{ severityColor(r.severity) }}">
+                {{ r.severity }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <label class="form-label small fw-medium">
+          Resolution notes <span class="text-danger">*</span>
+        </label>
+        <textarea class="form-control form-control-sm rounded-3 mb-3" rows="4"
+                  [(ngModel)]="resolutionNotes"
+                  placeholder="e.g. Coach completed certification on 2026-05-08; attendance log verified for missing sessions."></textarea>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="cancelResolve()">
+            Cancel
+          </button>
+          <button class="btn btn-success btn-sm rounded-3 px-3"
+                  [disabled]="!resolutionNotes.trim()"
+                  (click)="confirmResolve()">
+            <i class="bi bi-check2-circle me-1"></i>Mark Resolved
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Case details modal (read-only, all roles) ─────────────────────── -->
+  @if (selectedRecord(); as r) {
+    <div class="modal-backdrop-custom" (click)="closeDetails()">
+      <div class="card border-0 shadow-lg rounded-4 p-4"
+           style="max-width:560px; width:92%;"
+           (click)="$event.stopPropagation()">
+
+        <!-- Title row -->
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <div>
+            <p class="text-muted small mb-1" style="font-size:0.7rem;letter-spacing:0.06em;">CASE DETAILS</p>
+            <h5 class="fw-bold mb-0">{{ r.issueType }}</h5>
+          </div>
+          <button class="btn btn-link p-0 text-muted" (click)="closeDetails()">
+            <i class="bi bi-x-lg fs-5"></i>
+          </button>
+        </div>
+
+        <!-- Status + severity chips -->
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge rounded-pill px-3 py-1 bg-{{ statusColor(r.status) }}-subtle text-{{ statusColor(r.status) }}">
+            {{ r.status }}
+          </span>
+          <span class="badge rounded-pill px-3 py-1 bg-{{ severityColor(r.severity) }}-subtle text-{{ severityColor(r.severity) }}">
+            {{ r.severity }} severity
+          </span>
+        </div>
+
+        <!-- Field grid -->
+        <dl class="row g-2 mb-0 small">
+          <dt class="col-4 text-muted fw-medium">Program</dt>
+          <dd class="col-8 mb-0">{{ r.programName || '—' }}</dd>
+
+          <dt class="col-4 text-muted fw-medium">Activity</dt>
+          <dd class="col-8 mb-0">{{ r.activityName || '— None / General —' }}</dd>
+
+          <dt class="col-4 text-muted fw-medium">Policy</dt>
+          <dd class="col-8 mb-0">{{ r.policyName || '—' }}</dd>
+
+          <dt class="col-4 text-muted fw-medium">Reported</dt>
+          <dd class="col-8 mb-0">{{ (r.createdDate || r.createdAt) | date:'medium' }}</dd>
+
+          @if (r.assignedTo) {
+            <dt class="col-4 text-muted fw-medium">Assigned to</dt>
+            <dd class="col-8 mb-0">{{ r.assignedTo }}</dd>
+          }
+        </dl>
+
+        <!-- Notes -->
+        @if (r.notes) {
+          <div class="mt-3 pt-3 border-top">
+            <p class="text-muted small fw-medium mb-1" style="font-size:0.72rem;letter-spacing:0.04em;">NOTES</p>
+            <p class="mb-0 small">{{ r.notes }}</p>
+          </div>
+        }
+
+        <!-- Resolution notes -->
+        @if (r.resolutionNotes) {
+          <div class="mt-3 pt-3 border-top">
+            <p class="text-muted small fw-medium mb-1" style="font-size:0.72rem;letter-spacing:0.04em;">RESOLUTION</p>
+            <p class="mb-0 small">{{ r.resolutionNotes }}</p>
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+          <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" (click)="closeDetails()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

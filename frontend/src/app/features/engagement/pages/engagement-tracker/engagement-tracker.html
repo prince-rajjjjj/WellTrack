@@ -1,0 +1,376 @@
+<div class="content-area">
+
+  <!-- ── Page header ──────────────────────────────────────────────────── -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
+        {{ isHR ? 'Engagement Tracker' : 'My Engagement' }}
+      </h4>
+      <p class="text-muted small mb-0 mt-1">
+        {{ isHR
+          ? 'Organisation-wide engagement health — all programs, all employees'
+          : 'Your wellness engagement across all programmes' }}
+      </p>
+    </div>
+    @if (isHR) {
+      <div class="d-flex align-items-center gap-2">
+        @if (syncMessage()) {
+          <span class="small" [class.text-success]="syncMessage().startsWith('✓')"
+                              [class.text-danger]="!syncMessage().startsWith('✓')">
+            {{ syncMessage() }}
+          </span>
+        }
+        <button class="btn btn-primary btn-sm rounded-3 px-3"
+                (click)="syncAll()" [disabled]="syncing()">
+          @if (syncing()) {
+            <span class="spinner-border spinner-border-sm me-1"></span> Syncing…
+          } @else {
+            <i class="bi bi-arrow-repeat me-1"></i> Sync Scores
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2 small">Loading engagement data…</p>
+    </div>
+  }
+
+  <!-- ── Error ────────────────────────────────────────────────────────── -->
+  @if (error() && !loading()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!--  EMPLOYEE VIEW                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  @if (!loading() && isEmployee) {
+
+    <!-- Overall score strip -->
+    @if (myEngagement().length > 0) {
+      @let avgScore = myEngagement().reduce((s, r) => s + r.totalScore, 0) / myEngagement().length;
+      <div class="card border-0 shadow-sm mb-4 overall-score-banner">
+        <div class="card-body d-flex align-items-center gap-4 py-3">
+          <div>
+            <p class="text-muted small mb-0">Overall Engagement</p>
+            <span class="display-6 fw-bold" [ngClass]="scoreColorClass(avgScore)">
+              {{ avgScore | number:'1.0-0' }}<span class="fs-6 text-muted fw-normal">/100</span>
+            </span>
+          </div>
+          <div class="ms-auto d-flex align-items-center gap-3">
+            <span class="text-muted small">Across {{ myEngagement().length }} programme{{ myEngagement().length !== 1 ? 's' : '' }}</span>
+            @if (allTips().length > 0) {
+              <button class="btn btn-warning btn-sm rounded-circle d-flex align-items-center justify-content-center p-0"
+                      style="width:32px;height:32px;" (click)="toggleTips()"
+                      [title]="showTips() ? 'Hide tips' : 'Show improvement tips'">
+                <i class="bi bi-lightbulb-fill" style="font-size:0.75rem;"></i>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      @if (showTips() && allTips().length > 0) {
+        <div class="card border-warning border-opacity-50 border shadow-sm mb-4">
+          <div class="card-body py-2 px-3">
+            <p class="small fw-semibold text-muted mb-1">
+              <i class="bi bi-lightbulb-fill text-warning me-1"></i> Improvement Tips
+            </p>
+            <ul class="list-unstyled mb-0">
+              @for (tip of allTips(); track tip) {
+                <li class="small text-muted py-1">
+                  <i class="bi bi-chevron-right text-primary me-1 small"></i>{{ tip }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
+    }
+
+    @if (myEngagement().length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-bar-chart display-4 d-block mb-2 opacity-25"></i>
+        No engagement records yet. Join a programme to get started.
+      </div>
+    }
+
+    <!-- Per-programme cards -->
+    <div class="row row-cols-1 row-cols-lg-2 g-4">
+      @for (rec of pagedEngagement(); track rec.programID) {
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm engagement-card">
+            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between py-3">
+              <div>
+                <p class="fw-semibold mb-0">{{ programName(rec.programID) }}</p>
+                <p class="text-muted small mb-0 mt-1">Programme</p>
+              </div>
+              <span class="score-badge" [ngClass]="scoreColorClass(rec.totalScore)">
+                {{ rec.totalScore | number:'1.0-0' }}<span class="score-denom">/100</span>
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="d-flex flex-column gap-1">
+                  <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Attendance</span>
+                    <span class="fw-semibold text-primary">{{ rec.breakdown.attendanceScore | number:'1.0-0' }}<span class="text-muted fw-normal">/30</span></span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Activities</span>
+                    <span class="fw-semibold text-primary">{{ rec.breakdown.activityScore | number:'1.0-0' }}<span class="text-muted fw-normal">/25</span></span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Goals</span>
+                    <span class="fw-semibold text-primary">{{ rec.breakdown.goalScore | number:'1.0-0' }}<span class="text-muted fw-normal">/25</span></span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Feedback</span>
+                    <span class="fw-semibold text-primary">{{ rec.breakdown.feedbackScore | number:'1.0-0' }}<span class="text-muted fw-normal">/10</span></span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Consistency</span>
+                    <span class="fw-semibold text-primary">{{ rec.breakdown.consistencyScore | number:'1.0-0' }}<span class="text-muted fw-normal">/10</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer bg-transparent border-top text-muted small">
+              <i class="bi bi-clock me-1"></i> Last calculated: {{ formatDate(rec.lastCalculatedAt) }}
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Employee pagination -->
+    @if (empPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-1 mt-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="empPage() === 1" (click)="empGoToPage(empPage() - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of empPageNumbers(); track p) {
+          <button class="btn btn-sm rounded-3"
+                  [class]="p === empPage() ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="empGoToPage(p)">{{ p }}</button>
+        }
+        <button class="btn btn-sm btn-outline-secondary rounded-3"
+                [disabled]="empPage() === empPages()" (click)="empGoToPage(empPage() + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <span class="text-muted small ms-2">{{ empPage() }} / {{ empPages() }}</span>
+      </div>
+    }
+  }
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!--  HR / ADMIN VIEW                                                 -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  @if (!loading() && isHR) {
+
+    <!-- ── SECTION 1: KPI strip ───────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+      <div class="col-6">
+        <div class="card border-0 shadow-sm stat-card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Employees Tracked</p>
+            <h3 class="fw-bold mb-0 text-dark">{{ orgSummary()?.totalTracked ?? '—' }}</h3>
+            <small class="text-muted">with ≥1 record</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card border-0 shadow-sm stat-card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Org Average Score</p>
+            <h3 class="fw-bold mb-0" [ngClass]="scoreColorClass(orgSummary()?.orgAverageScore ?? 0)">
+              {{ orgSummary() ? (orgSummary()!.orgAverageScore | number:'1.0-1') : '—' }}
+            </h3>
+            <small class="text-muted">out of 100</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: Programme Health ──────────────────────────────── -->
+    <div class="row g-4 mb-4">
+
+      <!-- Programme Health -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-transparent border-bottom py-3">
+            <span class="fw-semibold">
+              <i class="bi bi-grid-3x2-gap-fill text-info me-1"></i> Programme Health
+            </span>
+            <span class="text-muted small ms-2">click a programme to see score breakdown</span>
+          </div>
+          @if (programHealth().length === 0) {
+            <div class="card-body text-center text-muted small py-4">No programme data yet.</div>
+          } @else {
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="small text-muted fw-semibold">Programme</th>
+                    <th class="small text-muted fw-semibold text-center">Enrolled</th>
+                    <th class="small text-muted fw-semibold text-center">Avg Score</th>
+                    <th class="small text-muted fw-semibold" style="min-width:140px;">H / M / L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (prog of programHealth(); track prog.programId) {
+                    <!-- Program row — clickable -->
+                    <tr style="cursor:pointer" (click)="toggleProgram(prog.programId)">
+                      <td>
+                        <i class="bi me-1 text-muted small"
+                          [ngClass]="expandedProgramId() === prog.programId ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                        <span class="fw-medium small">{{ programName(prog.programId) }}</span>
+                      </td>
+                      <td class="text-center small">{{ prog.totalEmployees }}</td>
+                      <td class="text-center">
+                        <span class="fw-semibold" [ngClass]="scoreColorClass(prog.avgScore)">
+                          {{ prog.avgScore | number:'1.0-1' }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="health-bar-stack d-flex rounded overflow-hidden mb-1" style="height:14px;">
+                          <div class="bg-success"
+                            [style.width]="programBarWidth(prog.highCount, prog.totalEmployees)"
+                            [title]="prog.highCount + ' High'"></div>
+                          <div class="bg-warning"
+                            [style.width]="programBarWidth(prog.mediumCount, prog.totalEmployees)"
+                            [title]="prog.mediumCount + ' Medium'"></div>
+                          <div class="bg-danger"
+                            [style.width]="programBarWidth(prog.lowCount, prog.totalEmployees)"
+                            [title]="prog.lowCount + ' Low'"></div>
+                        </div>
+                        <div class="d-flex gap-2" style="font-size:0.65rem;">
+                          <span class="text-success">● {{ prog.highCount }}</span>
+                          <span class="text-warning">● {{ prog.mediumCount }}</span>
+                          <span class="text-danger">● {{ prog.lowCount }}</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <!-- Expandable activity detail row -->
+                    @if (expandedProgramId() === prog.programId) {
+                      <tr>
+                        <td colspan="4" class="p-0">
+                          @if (loadingProgramId() === prog.programId) {
+                            <div class="text-center py-3">
+                              <span class="spinner-border spinner-border-sm text-primary"></span>
+                            </div>
+                          } @else if (programActivities(prog.programId).length === 0) {
+                            <p class="text-muted text-center small py-3 mb-0">No activities for this programme.</p>
+                          } @else {
+                            <div class="table-responsive bg-light border-top border-bottom">
+                              <table class="table table-sm align-middle mb-0" style="font-size:0.78rem;">
+                                <thead>
+                                  <tr class="table-secondary">
+                                    <th class="ps-3">Activity</th>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Mode</th>
+                                    <th class="text-center">Coach</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Enrolled</th>
+                                    <th class="text-center">Attended</th>
+                                    <th class="text-center">Rate</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (act of programActivities(prog.programId); track act.id) {
+                                    <tr>
+                                      <td class="ps-3 fw-medium">{{ act.title }}</td>
+                                      <td class="text-center text-muted">{{ act.date | date:'dd MMM yy' }}</td>
+                                      <td class="text-center">
+                                        <span class="badge bg-secondary-subtle text-secondary" style="font-size:0.65rem;">
+                                          {{ act.mode }}
+                                        </span>
+                                      </td>
+                                      <td class="text-center small">
+                                        {{ act.assignedCoachName ?? '—' }}
+                                      </td>
+                                      <td class="text-center">
+                                        <span class="badge"
+                                          [ngClass]="{
+                                            'bg-success-subtle text-success': act.status === 'Completed' || act.status === 4,
+                                            'bg-primary-subtle text-primary': act.status === 'Active'    || act.status === 1,
+                                            'bg-warning-subtle text-warning': act.status === 'Pending'   || act.status === 3,
+                                            'bg-danger-subtle  text-danger' : act.status === 'Cancelled' || act.status === 5,
+                                            'bg-secondary-subtle text-secondary': act.status === 'Inactive' || act.status === 2
+                                          }" style="font-size:0.65rem;">
+                                          {{ act.status }}
+                                        </span>
+                                      </td>
+                                      <td class="text-center">{{ act.enrolledCount }}</td>
+                                      <td class="text-center">{{ act.attendedCount }}</td>
+                                      <td class="text-center fw-semibold"
+                                          [ngClass]="scoreColorClass(attendancePct(act))">
+                                        {{ attendancePct(act) }}%
+                                      </td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── SECTION 4: Factor Health ─────────────────────────────────── -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <span class="fw-semibold">
+          <i class="bi bi-activity text-primary me-1"></i> Score Factor Health
+        </span>
+        <span class="text-muted small ms-2">org-wide avg per factor — shows where engagement is breaking down</span>
+      </div>
+      <div class="card-body">
+        @if (!factorHealth()) {
+          <p class="text-muted text-center small py-2">No data yet.</p>
+        } @else {
+          <div class="row g-3">
+            @for (f of factors(); track f.label) {
+              <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-medium">{{ f.label }}</span>
+                  <span class="small">
+                    <span class="fw-semibold" [style.color]="f.color">{{ f.pct | number:'1.0-0' }}%</span>
+                    <span class="text-muted ms-1">{{ f.avg | number:'1.0-1' }}/{{ f.max }} pts</span>
+                    @if (factorWeak(f.pct)) {
+                      <span class="badge bg-warning-subtle text-warning ms-1" style="font-size:0.65rem;">⚠ weak</span>
+                    }
+                  </span>
+                </div>
+                <div class="progress factor-bar">
+                  <div class="progress-bar" role="progressbar"
+                    [style.width]="f.pct + '%'"
+                    [style.background-color]="f.color">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+</div>

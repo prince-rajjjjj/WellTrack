@@ -1,0 +1,35 @@
+@use 'variables' as *;
+
+@mixin card-hover {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-2px);
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin text-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@mixin page-padding {
+  padding: 1.5rem 2rem;
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+}
